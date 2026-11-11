@@ -3503,10 +3503,35 @@ function animate() {
     controls.update();
   }
 
-  // 1. Animaciones Modo Producto
+  // 1. Animaciones Modo Producto (Fluidez & Realismo Vivo)
   if (state.currentMode === 'product') {
-    if (enclosureGroup) {
-      ledRingLight.intensity = 1.2 + Math.sin(time) * 0.4;
+    // Respiración del Anillo LED de Estado 360°
+    if (enclosureGroup && ledRingLight && materialsMap.ledRing) {
+      const pulse = (Math.sin(time * 3.5) + 1.0) * 0.5;
+      ledRingLight.intensity = 1.2 + pulse * 1.2;
+      materialsMap.ledRing.color.setHSL(0.52 + pulse * 0.03, 0.95, 0.45 + pulse * 0.2);
+    }
+
+    // Rotación suave continua de la micro-turbina del sensor SPS30
+    if (window.spsFanMesh) {
+      window.spsFanMesh.rotation.x += 0.35;
+    }
+
+    // Suavizado lerp ultra fluido en la transición de la vista explosionada
+    if (state.targetExplodedProgress !== undefined) {
+      const diff = state.targetExplodedProgress - state.explodedProgress;
+      if (Math.abs(diff) > 0.001) {
+        state.explodedProgress += diff * 0.12;
+        if (typeof applyExplodedPositions === 'function') {
+          applyExplodedPositions(state.explodedProgress);
+        }
+        const slider = document.getElementById('exploded-slider');
+        if (slider) {
+          slider.value = state.explodedProgress * 100;
+          const valEl = document.getElementById('exploded-val');
+          if (valEl) valEl.innerText = `${Math.round(state.explodedProgress * 100)}%`;
+        }
+      }
     }
 
     if (airflowParticles && airflowParticles.visible) {
@@ -3761,97 +3786,285 @@ function initThree() {
 }
 
 // Lighting Setup with Dynamic Weather Support
+// =====================================================================
+// TEXTURAS PROCEDURALES CANVAS DE ALTA RESOLUCIÓN PARA CAD 3D
+// =====================================================================
+
+function createSolarCellTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  // Silicio monocristalino azul noche fotovoltaico
+  ctx.fillStyle = '#071526';
+  ctx.fillRect(0, 0, 512, 512);
+
+  // Rejilla de celdas
+  ctx.strokeStyle = '#1e3a5f';
+  ctx.lineWidth = 3;
+  const cellSize = 128;
+  for (let x = 0; x <= 512; x += cellSize) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 512); ctx.stroke();
+  }
+  for (let y = 0; y <= 512; y += cellSize) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(512, y); ctx.stroke();
+  }
+
+  // 4 Busbars principales de plata (Silver Busbars)
+  ctx.strokeStyle = '#cbd5e1';
+  ctx.lineWidth = 5;
+  [64, 192, 320, 448].forEach(pos => {
+    ctx.beginPath(); ctx.moveTo(pos, 0); ctx.lineTo(pos, 512); ctx.stroke();
+  });
+
+  // Micro-conductores de alta densidad (Fingers)
+  ctx.strokeStyle = 'rgba(148, 163, 184, 0.4)';
+  ctx.lineWidth = 1;
+  for (let y = 6; y < 512; y += 10) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(512, y); ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  return texture;
+}
+
+function createOLEDTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  // Fondo OLED negro profundo
+  ctx.fillStyle = '#030712';
+  ctx.fillRect(0, 0, 512, 256);
+
+  // Marco perimetral cian
+  ctx.strokeStyle = '#0d9488';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(6, 6, 500, 244);
+
+  // Encabezado
+  ctx.fillStyle = '#2dd4bf';
+  ctx.font = 'bold 28px "JetBrains Mono", monospace';
+  ctx.fillText('OTech AirNet OS v2.4', 24, 46);
+
+  // Línea divisoria
+  ctx.strokeStyle = 'rgba(45, 212, 191, 0.5)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(24, 58); ctx.lineTo(488, 58); ctx.stroke();
+
+  // Métricas ambientales
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 26px "JetBrains Mono", monospace';
+  ctx.fillText('PM2.5: 14.8 µg/m³', 24, 104);
+  ctx.fillText('PM10 : 28.4 µg/m³', 24, 142);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 22px "JetBrains Mono", monospace';
+  ctx.fillText('HR: 68.2%  |  T: 18.4°C', 24, 180);
+
+  // Footer status bar
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 21px "JetBrains Mono", monospace';
+  ctx.fillText('● LoRaWAN OK  |  BAT: 98% [⚡]', 24, 226);
+
+  // Widget AQI lateral
+  ctx.fillStyle = '#10b981';
+  ctx.font = 'bold 36px "JetBrains Mono", monospace';
+  ctx.fillText('AQI: 42', 330, 115);
+  ctx.font = 'bold 18px "JetBrains Mono", monospace';
+  ctx.fillText('[ BUENO ]', 335, 145);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  window.oledCanvasTexture = texture;
+  return texture;
+}
+
+function createBadgeTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  // Fondo aluminio anodizado cepillado
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(0, 0, 512, 256);
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(4, 4, 504, 248);
+
+  // Texto grabado láser
+  ctx.fillStyle = '#e2e8f0';
+  ctx.font = 'bold 28px "JetBrains Mono", monospace';
+  ctx.fillText('OTech AirNet S.A.S.', 20, 44);
+
+  ctx.font = '17px "JetBrains Mono", monospace';
+  ctx.fillStyle = '#94a3b8';
+  ctx.fillText('Model: AirNet-Outdoor-v2.4 | IP65', 20, 78);
+  ctx.fillText('Serial: SN-2026-CO-08819', 20, 108);
+  ctx.fillText('UUID: ATECC608A-8a7c-44f2', 20, 138);
+  ctx.fillText('BOM Lot: #2026-B3 | Bogotá D.C.', 20, 168);
+  ctx.fillText('Sensors: SPS30 + BME680 + SCD41', 20, 198);
+
+  ctx.fillStyle = '#2dd4bf';
+  ctx.font = 'bold 20px "JetBrains Mono", monospace';
+  ctx.fillText('CE  RoHS  IP65  [NEMA 4X]', 20, 234);
+
+  // QR Code estilizado en esquina derecha
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(380, 20, 110, 110);
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(390, 30, 90, 90);
+  ctx.fillStyle = '#38bdf8';
+  ctx.fillRect(405, 45, 25, 25);
+  ctx.fillRect(445, 45, 25, 25);
+  ctx.fillRect(405, 85, 25, 25);
+  ctx.fillRect(440, 80, 15, 15);
+  ctx.fillRect(460, 95, 15, 15);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
+// Lighting Setup with Dynamic Weather & Cinematic Studio Rim Light
 function setupLights() {
-  ambientLight = new THREE.AmbientLight(0xddeeff, 0.7);
+  ambientLight = new THREE.AmbientLight(0xddeeff, 0.65);
   scene.add(ambientLight);
 
-  hemiLight = new THREE.HemisphereLight(0xffffff, 0x1e293b, 0.6);
+  hemiLight = new THREE.HemisphereLight(0xffffff, 0x1e293b, 0.55);
   hemiLight.position.set(0, 200, 0);
   scene.add(hemiLight);
 
-  dirLight = new THREE.DirectionalLight(0xfffaed, 1.4);
-  dirLight.position.set(120, 200, 100);
+  // Key Light (Luz Principal con Sombras de Alta Definición)
+  dirLight = new THREE.DirectionalLight(0xfffaed, 1.45);
+  dirLight.position.set(130, 210, 110);
   dirLight.castShadow = true;
   dirLight.shadow.mapSize.width = 2048;
   dirLight.shadow.mapSize.height = 2048;
   dirLight.shadow.camera.near = 10;
   dirLight.shadow.camera.far = 500;
-  dirLight.shadow.camera.left = -150;
-  dirLight.shadow.camera.right = 150;
-  dirLight.shadow.camera.top = 150;
-  dirLight.shadow.camera.bottom = -150;
-  dirLight.shadow.bias = -0.0005;
+  dirLight.shadow.camera.left = -160;
+  dirLight.shadow.camera.right = 160;
+  dirLight.shadow.camera.top = 160;
+  dirLight.shadow.camera.bottom = -160;
+  dirLight.shadow.bias = -0.0003;
   scene.add(dirLight);
 
+  // Studio Rim Light (Luz de Contorno Cian / Perfilado de Aristas de Producto)
+  const rimLight = new THREE.DirectionalLight(0x14b8a6, 2.0);
+  rimLight.position.set(-160, 170, -140);
+  scene.add(rimLight);
+  window.rimLight = rimLight;
+
+  // Fill Light Inferior (Ilumina suavemente los louvers de la cámara Stevenson)
+  const bounceLight = new THREE.DirectionalLight(0x38bdf8, 0.5);
+  bounceLight.position.set(0, -90, 70);
+  scene.add(bounceLight);
+  window.bounceLight = bounceLight;
+
   // LED Ring Status Glow Light
-  ledRingLight = new THREE.PointLight(0x0ea5e9, 1.5, 80);
+  ledRingLight = new THREE.PointLight(0x0ea5e9, 1.6, 90);
   ledRingLight.position.set(0, 75, 0);
   scene.add(ledRingLight);
 }
 
-// Build the Procedural 3D CAD Model
+// Build the Procedural 3D CAD Model (Grado Industrial IP65)
 function buildStation3D() {
   modelRoot = new THREE.Group();
   scene.add(modelRoot);
 
-  // Base Materials
-  materialsMap.asaPlastic = new THREE.MeshStandardMaterial({
-    color: 0xe2e8f0,
+  // ----------------------------------------------------
+  // MATERIALES FOTORREALISTAS (MeshPhysicalMaterial)
+  // ----------------------------------------------------
+  materialsMap.asaPlastic = new THREE.MeshPhysicalMaterial({
+    color: 0xf1f5f9,
+    roughness: 0.28,
+    metalness: 0.04,
+    clearcoat: 0.35,
+    clearcoatRoughness: 0.2,
+    reflectivity: 0.6
+  });
+
+  materialsMap.darkAsa = new THREE.MeshPhysicalMaterial({
+    color: 0x111827,
     roughness: 0.35,
-    metalness: 0.05
+    metalness: 0.12,
+    clearcoat: 0.2,
+    clearcoatRoughness: 0.3
   });
 
-  materialsMap.darkAsa = new THREE.MeshStandardMaterial({
-    color: 0x1e293b,
-    roughness: 0.4,
-    metalness: 0.1
-  });
-
+  const solarTexture = createSolarCellTexture();
   materialsMap.solarGlass = new THREE.MeshPhysicalMaterial({
-    color: 0x0f172a,
-    roughness: 0.1,
-    metalness: 0.8,
+    color: 0x1e3a8a,
+    map: solarTexture,
+    roughness: 0.04,
+    metalness: 0.85,
     clearcoat: 1.0,
-    clearcoatRoughness: 0.1,
-    reflectivity: 0.9
-  });
-
-  materialsMap.solarGrid = new THREE.MeshBasicMaterial({
-    color: 0x94a3b8,
-    wireframe: true
+    clearcoatRoughness: 0.05,
+    reflectivity: 0.95
   });
 
   materialsMap.stainlessSteel = new THREE.MeshStandardMaterial({
-    color: 0xcccccc,
-    roughness: 0.25,
-    metalness: 0.85
+    color: 0xd4d4d8,
+    roughness: 0.18,
+    metalness: 0.92
+  });
+
+  materialsMap.anodizedAlu = new THREE.MeshStandardMaterial({
+    color: 0xd1d5db,
+    roughness: 0.24,
+    metalness: 0.86
+  });
+
+  materialsMap.goldContacts = new THREE.MeshStandardMaterial({
+    color: 0xf59e0b,
+    roughness: 0.2,
+    metalness: 0.95
+  });
+
+  const oledTexture = createOLEDTexture();
+  materialsMap.oledScreen = new THREE.MeshBasicMaterial({
+    map: oledTexture
+  });
+
+  materialsMap.glassCover = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.45,
+    roughness: 0.05,
+    transmission: 0.9,
+    ior: 1.5,
+    clearcoat: 1.0
   });
 
   materialsMap.meshScreen = new THREE.MeshStandardMaterial({
-    color: 0x999999,
-    roughness: 0.5,
-    metalness: 0.7,
+    color: 0x94a3b8,
+    roughness: 0.4,
+    metalness: 0.8,
     transparent: true,
-    opacity: 0.55,
+    opacity: 0.65,
     wireframe: true
   });
 
   materialsMap.brass = new THREE.MeshStandardMaterial({
     color: 0xd4af37,
-    roughness: 0.3,
-    metalness: 0.8
+    roughness: 0.28,
+    metalness: 0.85
   });
 
   materialsMap.pcbGreen = new THREE.MeshStandardMaterial({
-    color: 0x065f46,
+    color: 0x064e3b,
     roughness: 0.3,
-    metalness: 0.2
+    metalness: 0.25
   });
 
   materialsMap.sensorAlu = new THREE.MeshStandardMaterial({
-    color: 0xd1d5db,
+    color: 0xe2e8f0,
     roughness: 0.2,
-    metalness: 0.85
+    metalness: 0.88
   });
 
   materialsMap.ledRing = new THREE.MeshBasicMaterial({
@@ -3859,269 +4072,498 @@ function buildStation3D() {
   });
 
   materialsMap.batteryBlue = new THREE.MeshStandardMaterial({
-    color: 0x2563eb,
-    roughness: 0.3,
-    metalness: 0.4
+    color: 0x1d4ed8,
+    roughness: 0.25,
+    metalness: 0.45
   });
 
   materialsMap.oRingRubber = new THREE.MeshStandardMaterial({
-    color: 0x111827,
-    roughness: 0.9,
+    color: 0x030712,
+    roughness: 0.95,
     metalness: 0.0
   });
 
+  materialsMap.copperWire = new THREE.MeshStandardMaterial({
+    color: 0xb45309,
+    roughness: 0.35,
+    metalness: 0.9
+  });
+
+  materialsMap.redWire = new THREE.MeshStandardMaterial({
+    color: 0xef4444,
+    roughness: 0.4,
+    metalness: 0.1
+  });
+
+  materialsMap.blackWire = new THREE.MeshStandardMaterial({
+    color: 0x18181b,
+    roughness: 0.4,
+    metalness: 0.1
+  });
+
+  const badgeTexture = createBadgeTexture();
+  materialsMap.badgeMaterial = new THREE.MeshStandardMaterial({
+    map: badgeTexture,
+    roughness: 0.3,
+    metalness: 0.7
+  });
+
   // ----------------------------------------------------
-  // 1. TOP HOOD & SOLAR MODULE
+  // 1. TOP HOOD & SOLAR MODULE (CÚPULA SOLAR CON BISEL)
   // ----------------------------------------------------
   hoodGroup = new THREE.Group();
   hoodGroup.userData = { id: 'hood', basePos: new THREE.Vector3(0, 115, 0) };
   hoodGroup.position.copy(hoodGroup.userData.basePos);
 
-  // Incline Group for the 12-degree solar slope
+  // Inclinación aerodinámica de 12 grados
   const solarTilt = new THREE.Group();
   solarTilt.rotation.x = THREE.MathUtils.degToRad(12);
 
-  // Tilted Top Cap (Shaped cone)
-  const hoodGeom = new THREE.CylinderGeometry(68, 62, 10, 48);
+  // Domo superior troncocónico moldeado
+  const hoodGeom = new THREE.CylinderGeometry(68, 62, 12, 64);
   const hoodMesh = new THREE.Mesh(hoodGeom, materialsMap.darkAsa);
   hoodMesh.castShadow = true;
   hoodMesh.receiveShadow = true;
   solarTilt.add(hoodMesh);
 
-  // Monocrystalline Solar Cell
-  const solarGeom = new THREE.BoxGeometry(76, 3, 76);
+  // Bisel de aluminio anodizado perimetral CNC
+  const bezelGeom = new THREE.TorusGeometry(67.5, 2.2, 16, 64);
+  const bezelMesh = new THREE.Mesh(bezelGeom, materialsMap.anodizedAlu);
+  bezelMesh.rotation.x = Math.PI / 2;
+  bezelMesh.position.y = 5.8;
+  solarTilt.add(bezelMesh);
+
+  // Módulo de Celda Solar Monocristalina de Silicio
+  const solarGeom = new THREE.BoxGeometry(78, 3.2, 78);
   const solarMesh = new THREE.Mesh(solarGeom, materialsMap.solarGlass);
-  solarMesh.position.y = 6;
+  solarMesh.position.y = 6.2;
   solarMesh.castShadow = true;
   solarTilt.add(solarMesh);
 
-  // Solar Grid Lines
-  const gridGeom = new THREE.PlaneGeometry(74, 74, 6, 6);
-  const gridMesh = new THREE.Mesh(gridGeom, materialsMap.solarGrid);
-  gridMesh.rotation.x = -Math.PI / 2;
-  gridMesh.position.y = 7.6;
-  solarTilt.add(gridMesh);
+  // 8 Tornillos Torx de Acero Inoxidable perimetrales
+  for (let i = 0; i < 8; i++) {
+    const angle = (i * Math.PI) / 4;
+    const screwGeom = new THREE.CylinderGeometry(2.0, 2.0, 2.5, 16);
+    const screwMesh = new THREE.Mesh(screwGeom, materialsMap.stainlessSteel);
+    screwMesh.position.set(Math.cos(angle) * 58, 6.2, Math.sin(angle) * 58);
+    solarTilt.add(screwMesh);
+  }
+
+  // Antena Stubby LoRaWAN / 4G (US915 / 868 MHz) en la parte superior
+  const antBaseGeom = new THREE.CylinderGeometry(4.5, 4.5, 5, 16);
+  const antBaseMesh = new THREE.Mesh(antBaseGeom, materialsMap.goldContacts);
+  antBaseMesh.position.set(0, 8, -28);
+  solarTilt.add(antBaseMesh);
+
+  const antWhipGeom = new THREE.CylinderGeometry(2.8, 3.8, 38, 16);
+  const antWhipMesh = new THREE.Mesh(antWhipGeom, materialsMap.darkAsa);
+  antWhipMesh.position.set(0, 27, -28);
+  solarTilt.add(antWhipMesh);
+
+  const antTipGeom = new THREE.SphereGeometry(2.8, 16, 16);
+  const antTipMesh = new THREE.Mesh(antTipGeom, materialsMap.darkAsa);
+  antTipMesh.position.set(0, 46, -28);
+  solarTilt.add(antTipMesh);
+
+  // Válvula de Compensación ePTFE Gore-Tex IP68 (Respiradero Hidrofóbico)
+  const ventHexGeom = new THREE.CylinderGeometry(5, 5, 4, 6);
+  const ventHexMesh = new THREE.Mesh(ventHexGeom, materialsMap.stainlessSteel);
+  ventHexMesh.position.set(28, 7.5, -20);
+  solarTilt.add(ventHexMesh);
+
+  const ventCapGeom = new THREE.CylinderGeometry(3.5, 3.5, 2, 16);
+  const ventCapMesh = new THREE.Mesh(ventCapGeom, materialsMap.darkAsa);
+  ventCapMesh.position.set(28, 9.5, -20);
+  solarTilt.add(ventCapMesh);
+
+  // Fotodiodo / Sensor UV miniatura
+  const uvLenseGeom = new THREE.SphereGeometry(2.2, 16, 16);
+  const uvLenseMesh = new THREE.Mesh(uvLenseGeom, materialsMap.glassCover);
+  uvLenseMesh.position.set(-28, 8, -20);
+  solarTilt.add(uvLenseMesh);
 
   hoodGroup.add(solarTilt);
 
-  // Hood Lower Collar (with O-ring seal groove)
-  const collarGeom = new THREE.CylinderGeometry(50, 50, 14, 48);
+  // Collarín Inferior con Ranura Machihembrada de Doble Ajuste
+  const collarGeom = new THREE.CylinderGeometry(51.8, 51.8, 16, 64);
   const collarMesh = new THREE.Mesh(collarGeom, materialsMap.darkAsa);
-  collarMesh.position.y = -7;
+  collarMesh.position.y = -8;
   collarMesh.castShadow = true;
   hoodGroup.add(collarMesh);
 
-  // EPDM O-Ring
-  const oringGeom = new THREE.TorusGeometry(49.8, 2.2, 16, 48);
-  const oringMesh = new THREE.Mesh(oringGeom, materialsMap.oRingRubber);
-  oringMesh.rotation.x = Math.PI / 2;
-  oringMesh.position.y = -6;
-  hoodGroup.add(oringMesh);
-
-  // 4 Stainless Steel Fastener Screws
-  for (let i = 0; i < 4; i++) {
-    const angle = (i * Math.PI) / 2 + Math.PI / 4;
-    const screwGeom = new THREE.CylinderGeometry(2.5, 2.5, 4, 16);
-    const screwMesh = new THREE.Mesh(screwGeom, materialsMap.stainlessSteel);
-    screwMesh.position.set(Math.cos(angle) * 56, 4, Math.sin(angle) * 56);
-    hoodGroup.add(screwMesh);
+  // Doble Junta Tórica EPDM (Estanqueidad IP65 Certificada)
+  for (let r = 0; r < 2; r++) {
+    const oringGeom = new THREE.TorusGeometry(51.6, 1.8, 16, 64);
+    const oringMesh = new THREE.Mesh(oringGeom, materialsMap.oRingRubber);
+    oringMesh.rotation.x = Math.PI / 2;
+    oringMesh.position.y = -6 - r * 5;
+    hoodGroup.add(oringMesh);
   }
 
   modelRoot.add(hoodGroup);
 
   // ----------------------------------------------------
-  // 2. MAIN SEALED ENCLOSURE (IP65)
+  // 2. MAIN SEALED ENCLOSURE (IP65) CON DISPLAY OLED
   // ----------------------------------------------------
   enclosureGroup = new THREE.Group();
   enclosureGroup.userData = { id: 'enclosure', basePos: new THREE.Vector3(0, 60, 0) };
   enclosureGroup.position.copy(enclosureGroup.userData.basePos);
 
-  // Main Cylinder Body
-  const encGeom = new THREE.CylinderGeometry(52, 52, 80, 48, 1, true);
+  // Cuerpo Cilíndrico Principal de Plástico Técnico ASA
+  const encGeom = new THREE.CylinderGeometry(52, 52, 80, 64, 1, true);
   const encMesh = new THREE.Mesh(encGeom, materialsMap.asaPlastic);
   encMesh.castShadow = true;
   encMesh.receiveShadow = true;
   enclosureGroup.add(encMesh);
 
-  // Top & Bottom Flanges
-  const flangeGeom = new THREE.CylinderGeometry(56, 56, 6, 48);
-  const topFlange = new THREE.Mesh(flangeGeom, materialsMap.asaPlastic);
+  // Bridas Superior e Inferior Maquinadas
+  const flangeGeom = new THREE.CylinderGeometry(56, 56, 6, 64);
+  const topFlange = new THREE.Mesh(flangeGeom, materialsMap.darkAsa);
   topFlange.position.y = 38;
-  const btmFlange = new THREE.Mesh(flangeGeom, materialsMap.asaPlastic);
+  const btmFlange = new THREE.Mesh(flangeGeom, materialsMap.darkAsa);
   btmFlange.position.y = -38;
   enclosureGroup.add(topFlange);
   enclosureGroup.add(btmFlange);
 
-  // Anillo LED RGB Difusor 360° (Status Ring)
-  const ledRingGeom = new THREE.TorusGeometry(53, 2.2, 16, 48);
+  // Ventana Frontal con Display OLED Integrado en Vivo
+  const oledFrameGeom = new THREE.BoxGeometry(32, 18, 4);
+  const oledFrameMesh = new THREE.Mesh(oledFrameGeom, materialsMap.darkAsa);
+  oledFrameMesh.position.set(0, 14, 51.5);
+  enclosureGroup.add(oledFrameMesh);
+
+  const oledScreenGeom = new THREE.PlaneGeometry(28, 14);
+  const oledScreenMesh = new THREE.Mesh(oledScreenGeom, materialsMap.oledScreen);
+  oledScreenMesh.position.set(0, 14, 53.6);
+  enclosureGroup.add(oledScreenMesh);
+
+  // Cristal de Protección Templado Biselado
+  const glassGeom = new THREE.BoxGeometry(30, 16, 1.5);
+  const glassMesh = new THREE.Mesh(glassGeom, materialsMap.glassCover);
+  glassMesh.position.set(0, 14, 54.4);
+  enclosureGroup.add(glassMesh);
+
+  // Anillo LED RGB Difusor 360° (Status Ring Luminoso)
+  const ledRingGeom = new THREE.TorusGeometry(53, 2.4, 16, 64);
   const ledRingMesh = new THREE.Mesh(ledRingGeom, materialsMap.ledRing);
   ledRingMesh.rotation.x = Math.PI / 2;
-  ledRingMesh.position.y = 15;
+  ledRingMesh.position.y = 2;
   enclosureGroup.add(ledRingMesh);
 
-  // PG9 Cable Gland (Prensaestopas de latón/nylon en lateral)
+  // 2x Cierres Rápidos Tipo Quick-Latch (Pestillos de Acero Inox para Hot-Swap)
+  for (let latch = 0; latch < 2; latch++) {
+    const yLatch = -14 + latch * 24;
+    // Base fijada al gabinete (lado derecho)
+    const latchBase = new THREE.BoxGeometry(4, 10, 8);
+    const latchBaseMesh = new THREE.Mesh(latchBase, materialsMap.stainlessSteel);
+    latchBaseMesh.position.set(52.5, yLatch, 0);
+    enclosureGroup.add(latchBaseMesh);
+
+    // Palanca de tiro basculante
+    const latchLever = new THREE.BoxGeometry(3, 14, 6);
+    const latchLeverMesh = new THREE.Mesh(latchLever, materialsMap.stainlessSteel);
+    latchLeverMesh.position.set(54.5, yLatch, 0);
+    enclosureGroup.add(latchLeverMesh);
+
+    // Bisagras industriales de acero inoxidable en el lado opuesto (izquierdo)
+    const hingeGeom = new THREE.CylinderGeometry(3.5, 3.5, 12, 16);
+    const hingeMesh = new THREE.Mesh(hingeGeom, materialsMap.stainlessSteel);
+    hingeMesh.position.set(-52.5, yLatch, 0);
+    enclosureGroup.add(hingeMesh);
+  }
+
+  // Prensaestopas PG9 de Latón Niquelado con Alivio de Curvatura
   const glandBase = new THREE.CylinderGeometry(7, 7, 14, 6);
   const glandNut = new THREE.CylinderGeometry(9, 9, 8, 6);
   const glandMesh1 = new THREE.Mesh(glandBase, materialsMap.brass);
   const glandMesh2 = new THREE.Mesh(glandNut, materialsMap.darkAsa);
   glandMesh1.rotation.z = Math.PI / 2;
   glandMesh2.rotation.z = Math.PI / 2;
-  glandMesh1.position.set(54, -15, 0);
-  glandMesh2.position.set(62, -15, 0);
+  glandMesh1.position.set(48, -24, 20);
+  glandMesh2.position.set(56, -24, 20);
   enclosureGroup.add(glandMesh1);
   enclosureGroup.add(glandMesh2);
 
-  // OTech Logo Plate Badge
-  const badgeGeom = new THREE.BoxGeometry(2, 14, 34);
-  const badgeMesh = new THREE.Mesh(badgeGeom, materialsMap.darkAsa);
-  badgeMesh.position.set(0, 10, 52.5);
+  // Conector Circular de Aviación Estanco M12 (5 Pines para Sensores Externos)
+  const m12Geom = new THREE.CylinderGeometry(6, 6, 12, 16);
+  const m12Mesh = new THREE.Mesh(m12Geom, materialsMap.anodizedAlu);
+  m12Mesh.rotation.z = Math.PI / 2;
+  m12Mesh.position.set(48, -24, -20);
+  enclosureGroup.add(m12Mesh);
+
+  // Placa de Identificación Metrológica Grabada por Láser (Cara Posterior)
+  const badgeGeom = new THREE.BoxGeometry(2, 22, 44);
+  const badgeMesh = new THREE.Mesh(badgeGeom, materialsMap.badgeMaterial);
+  badgeMesh.position.set(0, -10, -52.5);
   enclosureGroup.add(badgeMesh);
 
   modelRoot.add(enclosureGroup);
 
   // ----------------------------------------------------
-  // 3. INTERNAL SENSOR CHASSIS (SLIDING HOT-SWAP TRAY)
+  // 3. INTERNAL SENSOR CHASSIS (HOT-SWAP TRAY)
   // ----------------------------------------------------
   chassisGroup = new THREE.Group();
   chassisGroup.userData = { id: 'chassis', basePos: new THREE.Vector3(0, 60, 0) };
   chassisGroup.position.copy(chassisGroup.userData.basePos);
 
-  // Aluminum Mounting Backbone Plate
-  const pcbBackGeom = new THREE.BoxGeometry(4, 70, 75);
+  // Placa Backbone de Aluminio Anodizado Maquinado
+  const pcbBackGeom = new THREE.BoxGeometry(4, 72, 76);
   const pcbBackMesh = new THREE.Mesh(pcbBackGeom, materialsMap.sensorAlu);
   pcbBackMesh.castShadow = true;
   chassisGroup.add(pcbBackMesh);
 
-  // Main PCB Board (ESP32-S3 + LoRa Core)
-  const pcbGeom = new THREE.BoxGeometry(1.6, 65, 70);
+  // Asa / Tirador Ergonómico Frontal para Extracción Rápida (< 2 minutos)
+  const handleBarGeom = new THREE.TorusGeometry(12, 2.5, 12, 24, Math.PI);
+  const handleBarMesh = new THREE.Mesh(handleBarGeom, materialsMap.anodizedAlu);
+  handleBarMesh.rotation.z = -Math.PI / 2;
+  handleBarMesh.position.set(4, 26, 40);
+  chassisGroup.add(handleBarMesh);
+
+  // Rieles Guía de Precisión Laterales (Encajan en el Gabinete)
+  for (let r = 0; r < 2; r++) {
+    const railGeom = new THREE.BoxGeometry(3, 4, 78);
+    const railMesh = new THREE.Mesh(railGeom, materialsMap.anodizedAlu);
+    railMesh.position.set(0, (r === 0 ? 32 : -32), 0);
+    chassisGroup.add(railMesh);
+  }
+
+  // Conector de Peine de 12 Pines Pogo-Pin Bañados en Oro (Base Trasera)
+  const pogoBlockGeom = new THREE.BoxGeometry(6, 12, 34);
+  const pogoBlockMesh = new THREE.Mesh(pogoBlockGeom, materialsMap.darkAsa);
+  pogoBlockMesh.position.set(0, -32, -32);
+  chassisGroup.add(pogoBlockMesh);
+
+  for (let p = 0; p < 12; p++) {
+    const pinGeom = new THREE.CylinderGeometry(0.9, 0.9, 5, 8);
+    const pinMesh = new THREE.Mesh(pinGeom, materialsMap.goldContacts);
+    pinMesh.rotation.x = Math.PI / 2;
+    pinMesh.position.set(-1.5 + (p % 2) * 3, -32, -44 + Math.floor(p / 2) * 4.5);
+    chassisGroup.add(pinMesh);
+  }
+
+  // Tarjeta PCB Principal (ESP32-S3 + LoRa Core)
+  const pcbGeom = new THREE.BoxGeometry(1.8, 66, 72);
   const pcbMesh = new THREE.Mesh(pcbGeom, materialsMap.pcbGreen);
-  pcbMesh.position.x = 3.5;
+  pcbMesh.position.x = 3.6;
   chassisGroup.add(pcbMesh);
 
-  // ESP32-S3 Shielding Can & Antenna
-  const espGeom = new THREE.BoxGeometry(4, 18, 24);
+  // Shield de Radiofrecuencia ESP32-S3 WROOM con Serigrafía Láser
+  const espGeom = new THREE.BoxGeometry(4, 18, 26);
   const espMesh = new THREE.Mesh(espGeom, materialsMap.sensorAlu);
-  espMesh.position.set(6, 18, -15);
+  espMesh.position.set(6, 18, -14);
   chassisGroup.add(espMesh);
 
-  // Sensirion SPS30 Laser Particle Sensor (41x41x12 mm)
-  const spsGeom = new THREE.BoxGeometry(14, 38, 38);
+  // Cripto-Chip de Seguridad ATECC608A (mTLS Hardware Key)
+  const ateccGeom = new THREE.BoxGeometry(2.5, 6, 8);
+  const ateccMesh = new THREE.Mesh(ateccGeom, materialsMap.darkAsa);
+  ateccMesh.position.set(5.5, 26, -14);
+  chassisGroup.add(ateccMesh);
+
+  // Sensor Sensirion SPS30 con Turbina de Ventilación Interna
+  const spsGeom = new THREE.BoxGeometry(14, 40, 40);
   const spsMesh = new THREE.Mesh(spsGeom, materialsMap.sensorAlu);
   spsMesh.position.set(10, -12, -12);
   spsMesh.castShadow = true;
   chassisGroup.add(spsMesh);
 
-  // SPS30 Intake & Exhaust Nozzles
-  const nozzleGeom = new THREE.CylinderGeometry(3.5, 3.5, 8, 16);
+  // Toberas de Admisión y Escape del SPS30
+  const nozzleGeom = new THREE.CylinderGeometry(4.0, 4.0, 9, 16);
   const nozzleMesh1 = new THREE.Mesh(nozzleGeom, materialsMap.darkAsa);
   const nozzleMesh2 = new THREE.Mesh(nozzleGeom, materialsMap.darkAsa);
   nozzleMesh1.rotation.z = Math.PI / 2;
   nozzleMesh2.rotation.z = Math.PI / 2;
-  nozzleMesh1.position.set(18, -20, -22);
-  nozzleMesh2.position.set(18, -20, -2);
+  nozzleMesh1.position.set(18.5, -20, -22);
+  nozzleMesh2.position.set(18.5, -20, -2);
   chassisGroup.add(nozzleMesh1);
   chassisGroup.add(nozzleMesh2);
 
-  // Bosch BME680 Sensor Module
-  const bmeGeom = new THREE.BoxGeometry(3, 12, 14);
-  const bmeMesh = new THREE.Mesh(bmeGeom, materialsMap.darkAsa);
+  // Turbina de Ventilación Centrífuga Activa en la Tobera
+  const fanGroup = new THREE.Group();
+  fanGroup.position.set(22, -20, -22);
+  for (let b = 0; b < 5; b++) {
+    const bladeGeom = new THREE.BoxGeometry(0.8, 3.2, 1.5);
+    const bladeMesh = new THREE.Mesh(bladeGeom, materialsMap.darkAsa);
+    bladeMesh.rotation.x = (b * Math.PI * 2) / 5;
+    fanGroup.add(bladeMesh);
+  }
+  chassisGroup.add(fanGroup);
+  window.spsFanMesh = fanGroup;
+
+  // Sensor NDIR de CO2 (SCD41 / Senseair) con Cámara Dorada Reflectante
+  const ndirBaseGeom = new THREE.BoxGeometry(10, 16, 20);
+  const ndirBaseMesh = new THREE.Mesh(ndirBaseGeom, materialsMap.darkAsa);
+  ndirBaseMesh.position.set(8, -12, 20);
+  chassisGroup.add(ndirBaseMesh);
+
+  const ndirChamberGeom = new THREE.CylinderGeometry(5.5, 5.5, 14, 24);
+  const ndirChamberMesh = new THREE.Mesh(ndirChamberGeom, materialsMap.goldContacts);
+  ndirChamberMesh.rotation.z = Math.PI / 2;
+  ndirChamberMesh.position.set(11, -12, 20);
+  chassisGroup.add(ndirChamberMesh);
+
+  // Sensor Bosch BME680 (Temp, Humedad, Presión, VOC)
+  const bmeGeom = new THREE.BoxGeometry(3, 10, 12);
+  const bmeMesh = new THREE.Mesh(bmeGeom, materialsMap.sensorAlu);
   bmeMesh.position.set(6, 18, 18);
   chassisGroup.add(bmeMesh);
 
-  // LiFePO4 3.2V 6000mAh Battery Cell (Cylindrical 32650)
-  const battGeom = new THREE.CylinderGeometry(15, 15, 65, 32);
-  const battMesh = new THREE.Mesh(battGeom, materialsMap.batteryBlue);
-  battMesh.position.set(-18, 0, 10);
-  battMesh.castShadow = true;
-  chassisGroup.add(battMesh);
+  // Pack Dual de Baterías LiFePO4 32650 (6000 mAh c/u - Autonomía 72h)
+  for (let c = 0; c < 2; c++) {
+    const zOffset = -2 + c * 24;
+    const battGeom = new THREE.CylinderGeometry(14.5, 14.5, 66, 32);
+    const battMesh = new THREE.Mesh(battGeom, materialsMap.batteryBlue);
+    battMesh.position.set(-18, 0, zOffset);
+    battMesh.castShadow = true;
+    chassisGroup.add(battMesh);
+
+    // Bornes de Níquel Soldados
+    const terminalGeom = new THREE.CylinderGeometry(4.5, 4.5, 3, 16);
+    const terminalMesh = new THREE.Mesh(terminalGeom, materialsMap.stainlessSteel);
+    terminalMesh.position.set(-18, 34, zOffset);
+    chassisGroup.add(terminalMesh);
+  }
+
+  // Jaula Ignífuga Soporte de Batería con Placa BMS
+  const bmsGeom = new THREE.BoxGeometry(6, 6, 48);
+  const bmsMesh = new THREE.Mesh(bmsGeom, materialsMap.darkAsa);
+  bmsMesh.position.set(-18, 36, 10);
+  chassisGroup.add(bmsMesh);
+
+  // Cables de Silicona Trenzados Rojo (+) y Negro (-)
+  const redWireGeom = new THREE.CylinderGeometry(1.2, 1.2, 30, 8);
+  const redWireMesh = new THREE.Mesh(redWireGeom, materialsMap.redWire);
+  redWireMesh.rotation.z = Math.PI / 4;
+  redWireMesh.position.set(-8, 26, 16);
+  chassisGroup.add(redWireMesh);
+
+  const blackWireGeom = new THREE.CylinderGeometry(1.2, 1.2, 30, 8);
+  const blackWireMesh = new THREE.Mesh(blackWireGeom, materialsMap.blackWire);
+  blackWireMesh.rotation.z = Math.PI / 4;
+  blackWireMesh.position.set(-8, 24, 6);
+  chassisGroup.add(blackWireMesh);
 
   modelRoot.add(chassisGroup);
 
   // ----------------------------------------------------
-  // 4. STEVENSON INTAKE CHAMBER (LOUVERED SCREEN)
+  // 4. STEVENSON INTAKE CHAMBER (PERSIANAS AERODINÁMICAS)
   // ----------------------------------------------------
   stevensonGroup = new THREE.Group();
   stevensonGroup.userData = { id: 'stevenson', basePos: new THREE.Vector3(0, 0, 0) };
   stevensonGroup.position.copy(stevensonGroup.userData.basePos);
 
-  // 5x Louvered Stevenson Rings (45-degree angle deflectors)
-  const louverCount = 5;
+  // 6 Anillos Aerodinámicos de Entrada (Perfil Alar Invertido 45°)
+  const louverCount = 6;
   for (let i = 0; i < louverCount; i++) {
-    const yPos = 8 + i * 8.5;
-    const ringGeom = new THREE.CylinderGeometry(55, 48, 6, 48, 1, true);
+    const yPos = 6 + i * 8.0;
+
+    // Perfil curvado aerodinámico exterior
+    const ringGeom = new THREE.CylinderGeometry(56, 47, 6.5, 64, 1, true);
     const ringMesh = new THREE.Mesh(ringGeom, materialsMap.asaPlastic);
     ringMesh.position.y = yPos;
     ringMesh.castShadow = true;
     ringMesh.receiveShadow = true;
     stevensonGroup.add(ringMesh);
 
-    // Internal 45° Louver blades
+    // 6 Soportes Estructurales Verticales a 60 grados
     for (let a = 0; a < 6; a++) {
       const angle = (a * Math.PI) / 3;
-      const bladeGeom = new THREE.BoxGeometry(1.8, 6, 10);
-      const bladeMesh = new THREE.Mesh(bladeGeom, materialsMap.asaPlastic);
-      bladeMesh.position.set(Math.cos(angle) * 49, yPos, Math.sin(angle) * 49);
-      bladeMesh.rotation.y = -angle;
-      stevensonGroup.add(bladeMesh);
+      const ribGeom = new THREE.BoxGeometry(2.0, 6.5, 9);
+      const ribMesh = new THREE.Mesh(ribGeom, materialsMap.darkAsa);
+      ribMesh.position.set(Math.cos(angle) * 50, yPos, Math.sin(angle) * 50);
+      ribMesh.rotation.y = -angle;
+      stevensonGroup.add(ribMesh);
     }
   }
 
-  // Stainless Steel 316 Wire Mesh Screen (Internal Cylinder)
-  const meshGeom = new THREE.CylinderGeometry(46, 46, 44, 32, 1, true);
+  // Malla Cilíndrica Interior de Acero Inoxidable 316 Micronizada
+  const meshGeom = new THREE.CylinderGeometry(45.5, 45.5, 50, 48, 1, true);
   const meshMesh = new THREE.Mesh(meshGeom, materialsMap.meshScreen);
-  meshMesh.position.y = 25;
+  meshMesh.position.y = 26;
   stevensonGroup.add(meshMesh);
 
-  // Bottom Condensation Drain Funnel Cone
-  const coneGeom = new THREE.ConeGeometry(46, 14, 32, 1, true);
-  const coneMesh = new THREE.Mesh(coneGeom, materialsMap.asaPlastic);
+  // Deflector Cónico Inferior con Boquilla de Drenaje por Gravedad
+  const coneGeom = new THREE.ConeGeometry(46, 16, 48, 1, true);
+  const coneMesh = new THREE.Mesh(coneGeom, materialsMap.darkAsa);
   coneMesh.rotation.x = Math.PI;
-  coneMesh.position.y = 5;
+  coneMesh.position.y = 4;
   stevensonGroup.add(coneMesh);
+
+  // Boquilla de purga / drenaje de condensación
+  const drainGeom = new THREE.CylinderGeometry(3.5, 3.5, 8, 16);
+  const drainMesh = new THREE.Mesh(drainGeom, materialsMap.darkAsa);
+  drainMesh.position.y = -6;
+  stevensonGroup.add(drainMesh);
 
   modelRoot.add(stevensonGroup);
 
   // ----------------------------------------------------
-  // 5. POLE & WALL MOUNT BRACKET
+  // 5. POLE & WALL MOUNT BRACKET REFORZADO
   // ----------------------------------------------------
   bracketGroup = new THREE.Group();
   bracketGroup.userData = { id: 'bracket', basePos: new THREE.Vector3(0, -22, 0) };
   bracketGroup.position.copy(bracketGroup.userData.basePos);
 
-  // Base Collar Mount
-  const baseCollarGeom = new THREE.CylinderGeometry(52, 52, 16, 48);
+  // Collarín de Encastre Machihembrado a la Base
+  const baseCollarGeom = new THREE.CylinderGeometry(52, 52, 16, 64);
   const baseCollarMesh = new THREE.Mesh(baseCollarGeom, materialsMap.darkAsa);
   baseCollarMesh.position.y = 8;
   baseCollarMesh.castShadow = true;
   bracketGroup.add(baseCollarMesh);
 
-  // Heavy Duty Arm Extender to Mast
-  const armGeom = new THREE.BoxGeometry(48, 16, 40);
+  // Brazo Extensor Estructural Reforzado con Nervaduras Triangulares
+  const armGeom = new THREE.BoxGeometry(46, 16, 42);
   const armMesh = new THREE.Mesh(armGeom, materialsMap.darkAsa);
-  armMesh.position.set(0, 8, -45);
+  armMesh.position.set(0, 8, -46);
   armMesh.castShadow = true;
   bracketGroup.add(armMesh);
 
-  // Curved Mast Clamp Jaw (for 2" pole)
-  const clampGeom = new THREE.CylinderGeometry(32, 32, 18, 32, 1, true, Math.PI * 0.25, Math.PI * 1.5);
+  // 2 Nervaduras de Refuerzo Mecánico (Gussets contra vientos de 120 km/h)
+  for (let g = 0; g < 2; g++) {
+    const gussetGeom = new THREE.BoxGeometry(4, 28, 30);
+    const gussetMesh = new THREE.Mesh(gussetGeom, materialsMap.darkAsa);
+    gussetMesh.rotation.x = Math.PI / 4;
+    gussetMesh.position.set((g === 0 ? -18 : 18), 0, -42);
+    bracketGroup.add(gussetMesh);
+  }
+
+  // Mordaza Semicilíndrica de Amarre para Mástil de 2 Pulgadas (50.8 mm)
+  const clampGeom = new THREE.CylinderGeometry(32, 32, 24, 48, 1, true, Math.PI * 0.25, Math.PI * 1.5);
   const clampMesh = new THREE.Mesh(clampGeom, materialsMap.darkAsa);
   clampMesh.position.set(0, 8, -70);
   bracketGroup.add(clampMesh);
 
-  // 2x Steel Hose Clamps (Zunchos sinfín inoxidables)
+  // 2 Abrazaderas de Servicio Pesado en Acero Inox con Tornillos Nyloc
   for (let c = 0; c < 2; c++) {
-    const clampBandGeom = new THREE.TorusGeometry(32.5, 1.6, 8, 32);
+    const yClamp = 2 + c * 12;
+    const clampBandGeom = new THREE.TorusGeometry(32.5, 2.2, 12, 48);
     const clampBandMesh = new THREE.Mesh(clampBandGeom, materialsMap.stainlessSteel);
     clampBandMesh.rotation.x = Math.PI / 2;
-    clampBandMesh.position.set(0, 4 + c * 8, -70);
+    clampBandMesh.position.set(0, yClamp, -70);
     bracketGroup.add(clampBandMesh);
 
-    // Tightening Worm Gear Screw Head
-    const screwBox = new THREE.BoxGeometry(8, 6, 8);
+    // Pernos Pasantes M8 con Tuercas Autoblocantes
+    const screwBox = new THREE.BoxGeometry(8, 7, 10);
     const screwBoxMesh = new THREE.Mesh(screwBox, materialsMap.stainlessSteel);
-    screwBoxMesh.position.set(24, 4 + c * 8, -50);
+    screwBoxMesh.position.set(24, yClamp, -48);
     bracketGroup.add(screwBoxMesh);
+
+    const nutHex = new THREE.CylinderGeometry(4, 4, 6, 6);
+    const nutHexMesh = new THREE.Mesh(nutHex, materialsMap.stainlessSteel);
+    nutHexMesh.rotation.z = Math.PI / 2;
+    nutHexMesh.position.set(28, yClamp, -48);
+    bracketGroup.add(nutHexMesh);
   }
+
+  // Terminal de Puesta a Tierra para Descargas Atmosféricas
+  const groundLugGeom = new THREE.CylinderGeometry(4, 4, 6, 16);
+  const groundLugMesh = new THREE.Mesh(groundLugGeom, materialsMap.copperWire);
+  groundLugMesh.position.set(-20, 0, -56);
+  bracketGroup.add(groundLugMesh);
+
+  // Cable de Tierra Trenzado Amarillo/Verde
+  const groundCableGeom = new THREE.CylinderGeometry(2, 2, 80, 12);
+  const groundCableMesh = new THREE.Mesh(groundCableGeom, materialsMap.goldContacts);
+  groundCableMesh.position.set(-20, -40, -56);
+  bracketGroup.add(groundCableMesh);
 
   modelRoot.add(bracketGroup);
 
@@ -4130,21 +4572,28 @@ function buildStation3D() {
   // ----------------------------------------------------
   mastGroup = new THREE.Group();
 
-  // Galvanized Steel Mast (2 inches / 50.8 mm)
-  const mastGeom = new THREE.CylinderGeometry(25.4, 25.4, 300, 32);
+  // Mástil de Acero Galvanizado de 2 Pulgadas (50.8 mm de diámetro)
+  const mastGeom = new THREE.CylinderGeometry(25.4, 25.4, 340, 48);
   const mastMesh = new THREE.Mesh(mastGeom, materialsMap.stainlessSteel);
-  mastMesh.position.set(0, 20, -70);
+  mastMesh.position.set(0, 10, -70);
   mastMesh.castShadow = true;
   mastMesh.receiveShadow = true;
   mastGroup.add(mastMesh);
 
-  // Ground Grid Floor Plane
-  const gridHelper = new THREE.GridHelper(300, 20, 0x0ea5e9, 0x1e293b);
-  gridHelper.position.set(0, -130, 0);
+  // Tapa de Extremo Superior del Mástil
+  const mastCapGeom = new THREE.SphereGeometry(25.6, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2);
+  const mastCapMesh = new THREE.Mesh(mastCapGeom, materialsMap.darkAsa);
+  mastCapMesh.position.set(0, 180, -70);
+  mastGroup.add(mastCapMesh);
+
+  // Rejilla de Piso de Estudio Fotográfico
+  const gridHelper = new THREE.GridHelper(320, 24, 0x14b8a6, 0x1e293b);
+  gridHelper.position.set(0, -150, 0);
   mastGroup.add(gridHelper);
 
   scene.add(mastGroup);
 }
+
 
 // Airflow Dynamics Particle Simulation (Inside Stevenson Screen)
 function createAirflowParticles() {
@@ -4258,31 +4707,33 @@ function createDimensionLines() {
 }
 
 // Exploded View Transition Logic
-function updateExplodedView(progress) {
-  state.explodedProgress = progress;
-  document.getElementById('exploded-val').innerText = `${Math.round(progress * 100)}%`;
-
+function applyExplodedPositions(factor) {
   if (!hoodGroup) return;
 
-  // Separation factor
-  const factor = progress;
+  // 1. Cúpula superior sube suavemente
+  hoodGroup.position.y = hoodGroup.userData.basePos.y + factor * 76;
 
-  // 1. Top Hood expands upwards
-  hoodGroup.position.y = hoodGroup.userData.basePos.y + factor * 70;
+  // 2. Gabinete principal se eleva
+  enclosureGroup.position.y = enclosureGroup.userData.basePos.y + factor * 38;
 
-  // 2. Enclosure moves slightly up
-  enclosureGroup.position.y = enclosureGroup.userData.basePos.y + factor * 35;
+  // 3. Bandeja Hot-Swap se desliza hacia afuera en rieles telescópicos para inspección
+  chassisGroup.position.y = chassisGroup.userData.basePos.y + factor * 38;
+  chassisGroup.position.x = factor * 48;
+  chassisGroup.position.z = factor * 32;
 
-  // 3. Chassis slides horizontally & diagonally out for inspection
-  chassisGroup.position.y = chassisGroup.userData.basePos.y + factor * 35;
-  chassisGroup.position.x = factor * 45;
-  chassisGroup.position.z = factor * 30;
+  // 4. Cámara Stevenson desciende
+  stevensonGroup.position.y = stevensonGroup.userData.basePos.y - factor * 34;
 
-  // 4. Stevenson screen moves downwards
-  stevensonGroup.position.y = stevensonGroup.userData.basePos.y - factor * 30;
+  // 5. Soporte y mástil descienden para desacoplar el conjunto
+  bracketGroup.position.y = bracketGroup.userData.basePos.y - factor * 68;
+}
 
-  // 5. Mounting Bracket moves further down
-  bracketGroup.position.y = bracketGroup.userData.basePos.y - factor * 60;
+function updateExplodedView(progress) {
+  state.targetExplodedProgress = progress;
+  state.explodedProgress = progress;
+  const valEl = document.getElementById('exploded-val');
+  if (valEl) valEl.innerText = `${Math.round(progress * 100)}%`;
+  applyExplodedPositions(progress);
 }
 
 // X-Ray / Cross-Section Mode Toggle

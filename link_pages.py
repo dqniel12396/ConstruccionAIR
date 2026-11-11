@@ -37,3 +37,4 @@ if idx_p != -1:
     with open('portal.html', 'w', encoding='utf-8') as f:
         f.write(p)
     print("portal.html actualizado.")
+

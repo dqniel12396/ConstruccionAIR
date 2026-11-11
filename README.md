@@ -98,3 +98,4 @@ Luego ingresa en tu navegador a: `http://localhost:8080`
 
 ## 📜 Licencia y Derechos
 © 2026 OTech S.A.S. — Proyecto Académico & Tecnológico desarrollado para la Universidad Distrital Francisco José de Caldas.
+
