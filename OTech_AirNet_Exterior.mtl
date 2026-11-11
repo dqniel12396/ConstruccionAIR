@@ -1,0 +1,30 @@
+# Materiales OTech AirNet para Autodesk Inventor & Fusion 360
+
+newmtl Polimero_Blanco_ASA
+Ka 0.2 0.2 0.2
+Kd 0.95 0.96 0.98
+Ks 0.4 0.4 0.4
+Ns 60
+d 1.0
+
+newmtl Panel_Solar_Azul
+Ka 0.1 0.1 0.2
+Kd 0.08 0.18 0.42
+Ks 0.9 0.9 0.9
+Ns 150
+d 1.0
+
+newmtl Verde_PCB_Industrial
+Ka 0.1 0.2 0.1
+Kd 0.05 0.55 0.25
+Ks 0.5 0.5 0.5
+Ns 50
+d 1.0
+
+newmtl Acero_Inox_316
+Ka 0.3 0.3 0.3
+Kd 0.78 0.80 0.82
+Ks 0.95 0.95 0.95
+Ns 120
+d 1.0
+

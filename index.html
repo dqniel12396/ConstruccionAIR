@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OTech AirNet - Modelado 3D de Estación Exterior de Calidad del Aire</title>
+  <meta name="description" content="Modelado interactivo 3D del nodo exterior de monitoreo de calidad del aire OTech AirNet, adaptando la tecnología CanAirIO a grado industrial IP65 con escudo Stevenson.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <!-- Three.js and OrbitControls via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/OBJExporter.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header / Top Bar -->
+    <header class="top-header">
+      <div class="brand-badge">
+        <div class="brand-logo">
+          <span class="logo-ring"></span>
+          <span class="logo-dot"></span>
+        </div>
+        <div class="brand-text">
+          <h1>OTech AirNet <span>v2.4 Exterior</span></h1>
+          <p class="tagline">Evolución Industrial CanAirIO &bull; Grado Intemperie IP65</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="mode-switcher-container">
+          <button id="btn-view-product" class="mode-switch-btn active" title="Ver Modelo 3D de la Estación Exterior">
+            <i data-lucide="box"></i> Estación 3D
+          </button>
+          <button id="btn-view-plant" class="mode-switch-btn" title="Ver Planta de Producción y Simulación Industrial (500 uds/mes)">
+            <i data-lucide="factory"></i> Planta de Producción (500/mes)
+          </button>
+          <a href="portal.html" class="mode-switch-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;background:rgba(20,184,166,0.15);border:1px solid #14b8a6;color:#2dd4bf;font-weight:600;" title="Ir a la Plataforma Web de Gestión, Estadísticas y Aparatos">
+            <i data-lucide="layout-dashboard"></i> Portal Cloud & Datos
+          </a>
+        </div>
+
+        <div class="status-pill status-live">
+          <span class="pulse-dot"></span>
+          <span id="header-status-text">Modelo 3D Interactivo</span>
+        </div>
+        <button id="btn-toggle-sidebar" class="btn-sidebar-toggle" title="Mostrar / Ocultar Panel de Especificaciones">
+          <i data-lucide="panel-right"></i>
+          <span id="sidebar-toggle-text">Especificaciones</span>
+        </button>
+        <button id="btn-export-stl" class="btn-primary">
+          <i data-lucide="download"></i> Descargar STL 3D
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Layout -->
+    <main class="main-layout">
+      <!-- 3D Canvas Area -->
+      <section class="viewport-section">
+        <div id="canvas-container">
+          <!-- Three.js Canvas injected here -->
+        </div>
+
+        <!-- 3D Overlay Toolbars -->
+        <div class="viewport-controls-top">
+          <div class="view-preset-buttons">
+            <button class="preset-btn active" data-view="isometric" title="Vista Isométrica">Iso</button>
+            <button class="preset-btn" data-view="front" title="Vista Frontal">Frontal</button>
+            <button class="preset-btn" data-view="top" title="Vista Superior">Superior</button>
+            <button class="preset-btn" data-view="side" title="Vista Lateral">Lateral</button>
+          </div>
+
+          <div class="mode-toggles">
+            <button id="btn-toggle-xray" class="control-btn" title="Modo Rayos X / Corte de Flujo">
+              <i data-lucide="scan"></i> Rayos X
+            </button>
+            <button id="btn-toggle-dimensions" class="control-btn" title="Mostrar Cotas (mm)">
+              <i data-lucide="ruler"></i> Cotas (mm)
+            </button>
+            <button id="btn-toggle-mast" class="control-btn active" title="Mostrar Mástil/Poste">
+              <i data-lucide="cable"></i> Poste
+            </button>
+            <button id="btn-toggle-fps" class="control-btn btn-fps-highlight" title="Recorrer la fábrica como un videojuego en Primera Persona (WASD + Ratón)">
+              <i data-lucide="gamepad-2"></i> Recorrido FPS
+            </button>
+          </div>
+        </div>
+
+        <!-- HUD Primera Persona (Videojuego Walkthrough FPS) -->
+        <div id="fps-hud" class="fps-hud hidden">
+          <div class="fps-crosshair"></div>
+
+          <!-- Banner superior para reanudar cuando el cursor está liberado para cambiar opciones -->
+          <div id="fps-resume-banner" class="fps-resume-banner hidden">
+            <button id="btn-resume-fps" class="fps-resume-btn" title="Hacer clic para recuperar el control 360°">
+              <i data-lucide="play"></i> Modo Opciones Activo &bull; Clic aquí, en la pantalla o pulsa <b>Tab</b> para continuar
+            </button>
+          </div>
+
+          <div class="fps-card glass-panel">
+            <div class="fps-card-header">
+              <div class="fps-title">
+                <i data-lucide="gamepad-2"></i>
+                <span>Modo Primera Persona Activo</span>
+              </div>
+              <div class="fps-header-actions">
+                <button id="btn-unlock-mouse" class="fps-opt-btn" title="Liberar o fijar ratón para cambiar opciones con un clic (Tecla Tab)">
+                  <i data-lucide="mouse-pointer-click"></i> Opciones (Tab)
+                </button>
+                <button id="btn-exit-fps" class="fps-exit-btn" title="Salir al Modo Vista Aérea (Esc)">&times; Salir</button>
+              </div>
+            </div>
+            <div class="fps-controls-hints">
+              <span class="key-badge">W A S D</span> Caminar &bull;
+              <span class="key-badge">Ratón</span> Mirar 360° &bull;
+              <span class="key-badge">Shift</span> Correr &bull;
+              <span class="key-badge">Tab</span> Opciones / Cursor &bull;
+              <span class="key-badge">1, 2, 3</span> Sensibilidad &bull;
+              <span class="key-badge">T</span> Techo &bull;
+              <span class="key-badge">Esc</span> Salir
+            </div>
+            <div class="fps-sens-row">
+              <span class="sens-label"><i data-lucide="sliders"></i> Sensibilidad:</span>
+              <div class="sens-buttons">
+                <button class="sens-btn active" data-sens="0.0005" title="Sensibilidad Suave (Tecla 1)">Suave [1]</button>
+                <button class="sens-btn" data-sens="0.0008" title="Sensibilidad Media (Tecla 2)">Media [2]</button>
+                <button class="sens-btn" data-sens="0.0014" title="Sensibilidad Rápida (Tecla 3)">Ágil [3]</button>
+              </div>
+              <input type="range" id="fps-sens-slider" min="0.0002" max="0.0018" step="0.0001" value="0.0005" title="Ajuste fino continuo">
+              <button id="btn-fps-roof" class="fps-roof-btn active" title="Mostrar u ocultar cubierta / techo industrial (Tecla T)">
+                <i data-lucide="home"></i> <span id="fps-roof-text">Techo ON</span>
+              </button>
+            </div>
+            <div class="fps-status-bar">
+              <span class="pulse-dot"></span>
+              <span id="fps-location-text">Piso 1: Planta de Producción y Ensamble</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Exploded View Slider Floating Dock (Modo Producto) -->
+        <div id="dock-product-controls" class="viewport-dock-bottom">
+          <div class="slider-card glass-panel">
+            <div class="slider-header">
+              <div class="slider-label">
+                <i data-lucide="layers"></i>
+                <span>Vista Explosionada (Despiece Modular)</span>
+              </div>
+              <span id="exploded-val" class="slider-percentage">0%</span>
+            </div>
+            <div class="slider-input-wrapper">
+              <input type="range" id="exploded-slider" min="0" max="100" value="0" step="1">
+            </div>
+          </div>
+
+          <!-- Weather Simulation Floating Bar -->
+          <div class="weather-card glass-panel">
+            <span class="weather-title"><i data-lucide="cloud-sun"></i> Simulación Climática:</span>
+            <div class="weather-buttons">
+              <button class="weather-btn active" data-weather="sun" title="Día Soleado (Radiación Solar)">
+                <i data-lucide="sun"></i> Sol
+              </button>
+              <button class="weather-btn" data-weather="rain" title="Lluvia Torrencial e Impacto">
+                <i data-lucide="cloud-rain"></i> Lluvia
+              </button>
+              <button class="weather-btn" data-weather="night" title="Modo Nocturno">
+                <i data-lucide="moon"></i> Noche
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Plant Simulation Floating Dock (Modo Planta de Producción - 2 Pisos) -->
+        <div id="dock-plant-controls" class="viewport-dock-bottom hidden">
+          <div class="plant-sim-dock glass-panel">
+            <div class="sim-play-group">
+              <button id="btn-sim-play" class="btn-sim-toggle active" title="Iniciar / Pausar Simulación de Flujo">
+                <i data-lucide="play"></i> <span>Simulación Activa</span>
+              </button>
+              <div class="floor-selector">
+                <button class="floor-btn active" data-floor="all" title="Ver Edificio Completo (2 Pisos)">
+                  <i data-lucide="building-2"></i> Ambos Pisos
+                </button>
+                <button class="floor-btn" data-floor="p1" title="Ver Nivel 1: Planta de Producción y Ensamble">
+                  <i data-lucide="factory"></i> Piso 1: Fábrica
+                </button>
+                <button class="floor-btn" data-floor="p2" title="Ver Nivel 2: Sede Corporativa, R&D y NOC">
+                  <i data-lucide="briefcase"></i> Piso 2: Corporativo
+                </button>
+                <button class="floor-btn" data-floor="split" title="Separar Pisos en Vista Explosionada Vertical">
+                  <i data-lucide="layers"></i> Despiece Pisos
+                </button>
+                <button id="btn-toggle-roof" class="floor-btn" title="Alternar Cubierta / Techo Industrial Completo">
+                  <i data-lucide="home"></i> <span id="roof-btn-text">Ver Techo</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="sim-kpi-pill">
+              <span class="kpi-label">Takt Time:</span>
+              <span class="kpi-val highlight-cyan">16.8 min</span>
+            </div>
+            <div class="sim-kpi-pill">
+              <span class="kpi-label">Producido Hoy:</span>
+              <span id="sim-units-count" class="kpi-val highlight-green">18 / 25 uds</span>
+            </div>
+            <div class="sim-kpi-pill">
+              <span class="kpi-label">OEE Global:</span>
+              <span class="kpi-val highlight-amber">86.4%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hotspot Inspection Card (Dynamic) -->
+        <div id="hotspot-card" class="hotspot-popup glass-panel hidden">
+          <div class="hotspot-popup-header">
+            <div class="hotspot-badge" id="hotspot-type">Componente</div>
+            <button id="hotspot-close" class="close-btn">&times;</button>
+          </div>
+          <h3 id="hotspot-title">Nombre del Componente</h3>
+          <p id="hotspot-desc">Descripción técnica y funcional del módulo exterior.</p>
+          <div class="hotspot-specs" id="hotspot-specs">
+            <!-- Dynamic specs table -->
+          </div>
+        </div>
+
+        <!-- 3D Navigation Hint -->
+        <div class="nav-hint">
+          <span><i data-lucide="mouse-pointer"></i> Clic + Arrastrar: Rotar &bull; Clic Derecho: Desplazar &bull; Rueda: Zoom</span>
+        </div>
+      </section>
+
+      <!-- Sidebar / Technical Dashboard -->
+      <aside class="sidebar-section">
+        <!-- Tabs Grupo 1: Producto -->
+        <div id="tabs-product" class="sidebar-tabs">
+          <button class="tab-btn active" data-tab="specs">
+            <i data-lucide="cpu"></i> Módulos
+          </button>
+          <button class="tab-btn" data-tab="aerodynamics">
+            <i data-lucide="wind"></i> Flujo
+          </button>
+          <button class="tab-btn" data-tab="evolution">
+            <i data-lucide="arrow-up-right"></i> CanAirIO
+          </button>
+          <button class="tab-btn" data-tab="bom">
+            <i data-lucide="clipboard-list"></i> BOM
+          </button>
+          <button class="tab-btn" data-tab="requirements">
+            <i data-lucide="file-check-2"></i> Requisitos
+          </button>
+        </div>
+
+        <!-- Tabs Grupo 2: Planta de Producción y Sede Corporativa -->
+        <div id="tabs-plant" class="sidebar-tabs hidden">
+          <button class="tab-btn active" data-tab="plant-stations">
+            <i data-lucide="layout-grid"></i> Estaciones
+          </button>
+          <button class="tab-btn" data-tab="plant-admin">
+            <i data-lucide="building-2"></i> Sede Admin
+          </button>
+          <button class="tab-btn" data-tab="plant-sim">
+            <i data-lucide="gauge"></i> Simulación
+          </button>
+          <button class="tab-btn" data-tab="plant-balancing">
+            <i data-lucide="bar-chart-2"></i> Takt & OEE
+          </button>
+          <button class="tab-btn" data-tab="plant-autodesk">
+            <i data-lucide="layers"></i> CAD & SOP
+          </button>
+        </div>
+
+        <div class="sidebar-content">
+          <!-- TAB 1: COMPONENTES MODULARES -->
+          <div id="tab-specs" class="tab-pane active">
+            <div class="pane-header">
+              <div class="pane-header-row">
+                <h2>Capas de Ingeniería OTech</h2>
+                <button class="btn-toggle-all" onclick="toggleAllAccordions('tab-specs')">
+                  <i data-lucide="chevrons-up-down"></i> Todo
+                </button>
+              </div>
+              <p>Haga clic en un módulo para expandir sus especificaciones y enfocar el 3D.</p>
+            </div>
+
+            <div class="component-list">
+              <div class="comp-item open" data-part="hood">
+                <div class="comp-header-row">
+                  <div class="comp-icon"><i data-lucide="sun-medium"></i></div>
+                  <div class="comp-title-area">
+                    <h4>1. Cúpula Solar Superior</h4>
+                    <span class="badge-tag">Protección UV & Lluvia</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Inclinación cónica a 12° anti-acumulación de agua, celda solar monocristalina de 5V/5W ETFE y canal perimetral para junta tórica O-Ring de EPDM.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Polímero ASA UV</span>
+                    <span class="badge-tag tag-qa">IP65 Hermético</span>
+                    <span class="badge-tag">4x Allen M4 Inox</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item" data-part="enclosure">
+                <div class="comp-header-row">
+                  <div class="comp-icon"><i data-lucide="shield-check"></i></div>
+                  <div class="comp-title-area">
+                    <h4>2. Gabinete Hermético IP65</h4>
+                    <span class="badge-tag tag-qa">NEMA 4X / IP66</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Carcasa cilíndrica de doble pared con prensaestopas PG9 estanco y anillo difusor LED RGB 360° para diagnóstico visual del estado de la red y nivel AQI.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Prensaestopas PG9</span>
+                    <span class="badge-tag tag-cert">Anillo RGB 360°</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item" data-part="chassis">
+                <div class="comp-header-row">
+                  <div class="comp-icon"><i data-lucide="circuit-board"></i></div>
+                  <div class="comp-title-area">
+                    <h4>3. Bandeja Deslizable Hot-Swap</h4>
+                    <span class="badge-tag tag-esd">Cambio en 2 min</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>PCB con ESP32-S3 Dual-Core + Cripto-chip, transceptor LoRaWAN/LTE-M, sensor láser Sensirion SPS30 con dampers de silicona y pack LiFePO4 3.2V 6000mAh (72h backup).</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Sensirion SPS30</span>
+                    <span class="badge-tag">Bosch BME680</span>
+                    <span class="badge-tag tag-stress">LiFePO4 6000mAh</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item" data-part="stevenson">
+                <div class="comp-header-row">
+                  <div class="comp-icon"><i data-lucide="shield-alert"></i></div>
+                  <div class="comp-title-area">
+                    <h4>4. Cámara Stevenson Louvered</h4>
+                    <span class="badge-tag">Muestreo Sin Lluvia</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>5 niveles de branquias inclinadas a 45° con malla de acero inoxidable 316 (300 µm) anti-insectos y cono de evacuación de condensación por gravedad.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Malla Inox 316</span>
+                    <span class="badge-tag tag-qa">Aislamiento Térmico</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item" data-part="bracket">
+                <div class="comp-header-row">
+                  <div class="comp-icon"><i data-lucide="anchor"></i></div>
+                  <div class="comp-title-area">
+                    <h4>5. Soporte Mástil & Pared Heavy-Duty</h4>
+                    <span class="badge-tag tag-stress">Vientos 120 km/h</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Mordaza de sujeción para postes de 1.5" a 2.5" con dos zunchos de acero inoxidable sinfín y perforaciones para anclaje a muro de concreto con chazos M6.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Poste 1.5" - 2.5"</span>
+                    <span class="badge-tag">Tornillería A4</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: DINÁMICA DE FLUJO Y PROTECCIÓN CLIMÁTICA -->
+          <div id="tab-aerodynamics" class="tab-pane">
+            <div class="pane-header">
+              <h2>Dinámica de Flujo y Protección IP65</h2>
+              <p>Cómo OTech soluciona la entrada de agua y la radiación solar.</p>
+            </div>
+
+            <div class="card-grid">
+              <div class="info-card">
+                <div class="info-card-icon"><i data-lucide="shield"></i></div>
+                <h3>1. Escudo Térmico & Stevenson</h3>
+                <p>Las branquias louvered a 45° permiten que el aire ambiente entre por convección natural, pero bloquean la radiación solar directa. Esto evita que el sensor térmico BME680 sufra calentamiento artificial por radiación.</p>
+              </div>
+
+              <div class="info-card">
+                <div class="info-card-icon"><i data-lucide="droplet-off"></i></div>
+                <h3>2. Decantación de Humedad</h3>
+                <p>Las gotas de lluvia tienen mayor inercia y son desviadas hacia el exterior por las aletas angulares, cayendo por el deflector inferior sin ingresar al sensor óptico de partículas SPS30.</p>
+              </div>
+
+              <div class="info-card">
+                <div class="info-card-icon"><i data-lucide="cpu"></i></div>
+                <h3>3. Corrección Higroscópica</h3>
+                <p>El firmware OTech aplica en tiempo real la ecuación de Kappa-Köhler para descontar el crecimiento por humedad de partículas finas cuando HR > 75%, evitando falsas alarmas ambientales.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 3: EVOLUCIÓN VS CANAIRIO -->
+          <div id="tab-evolution" class="tab-pane">
+            <div class="pane-header">
+              <h2>Matriz de Evolución Tecnológica</h2>
+              <p>Comparativa directa entre CanAirIO Base y OTech AirNet Exterior.</p>
+            </div>
+
+            <div class="table-container">
+              <table class="comparison-table">
+                <thead>
+                  <tr>
+                    <th>Característica</th>
+                    <th>CanAirIO Base</th>
+                    <th>OTech AirNet Ext.</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Enfoque</strong></td>
+                    <td>Ciencia ciudadana / Móvil</td>
+                    <td><span class="highlight-green">Institucional B2G / B2B</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Carcasa</strong></td>
+                    <td>PLA / Impresión 3D abierta</td>
+                    <td><span class="highlight-green">Polímero ASA UV / IP65</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Protección Lluvia</strong></td>
+                    <td>No garantizada</td>
+                    <td><span class="highlight-green">Escudo Stevenson 45° + Malla 316</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Alimentación</strong></td>
+                    <td>PowerBank USB 5V</td>
+                    <td><span class="highlight-green">Panel Solar MPPT + LiFePO4</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Mantenimiento</strong></td>
+                    <td>Desarme total</td>
+                    <td><span class="highlight-green">Bandeja Deslizable Hot-Swap</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Conectividad</strong></td>
+                    <td>BLE / Wi-Fi</td>
+                    <td><span class="highlight-green">Wi-Fi + LoRaWAN + LTE-M</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>Sensor PM</strong></td>
+                    <td>PMS5003 / SDS011</td>
+                    <td><span class="highlight-green">Sensirion SPS30 (MCERTS)</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- TAB 4: BOM & COSTOS -->
+          <div id="tab-bom" class="tab-pane">
+            <div class="pane-header">
+              <h2>Lista de Materiales (BOM)</h2>
+              <p>Costos estimados de fabricación por unidad (Lote Piloto de 10 nodos).</p>
+            </div>
+
+            <div class="bom-list">
+              <div class="bom-item">
+                <span class="bom-name">Sensor Láser PM Sensirion SPS30</span>
+                <span class="bom-cost">$42.00 USD</span>
+              </div>
+              <div class="bom-item">
+                <span class="bom-name">Sensor BME680 (Temp/Hum/Pres/VOCs)</span>
+                <span class="bom-cost">$14.50 USD</span>
+              </div>
+              <div class="bom-item">
+                <span class="bom-name">Microcontrolador ESP32-S3 + LoRa SX1262</span>
+                <span class="bom-cost">$18.00 USD</span>
+              </div>
+              <div class="bom-item">
+                <span class="bom-name">Panel Solar 5W Monocristalino ETFE + MPPT</span>
+                <span class="bom-cost">$16.00 USD</span>
+              </div>
+              <div class="bom-item">
+                <span class="bom-name">Batería LiFePO4 3.2V 6000mAh con BMS</span>
+                <span class="bom-cost">$15.00 USD</span>
+              </div>
+              <div class="bom-item">
+                <span class="bom-name">Carcasa Modular ASA-UV + Tornillería Inox A4</span>
+                <span class="bom-cost">$22.00 USD</span>
+              </div>
+              <div class="bom-item">
+                <span class="bom-name">Malla Acero Inox 316 + Juntas O-Ring IP65</span>
+                <span class="bom-cost">$6.50 USD</span>
+              </div>
+              <div class="bom-item total-item">
+                <span class="bom-name">Costo Total Hardware / Nodo</span>
+                <span class="bom-cost highlight-cost">$134.00 USD</span>
+              </div>
+            </div>
+
+            <div class="action-footer">
+              <a href="otech_outdoor_station.scad" download class="btn-secondary">
+                <i data-lucide="code"></i> Descargar OpenSCAD (.scad)
+              </a>
+              <a href="MODELO_EXTERIOR_OTECH.md" download class="btn-secondary">
+                <i data-lucide="file-text"></i> Ficha Técnica (.md)
+              </a>
+            </div>
+          </div>
+
+          <!-- TAB 5: REQUERIMIENTOS FORMALES SDLC (ISO 25010) -->
+          <div id="tab-requirements" class="tab-pane">
+            <div class="pane-header">
+              <div class="pane-header-row">
+                <h2>Requisitos del Sistema (SDLC)</h2>
+                <span class="badge-tag">ISO/IEC 25010</span>
+              </div>
+              <p>Levantamiento formal de 10 Requisitos Funcionales (RF) y 8 No Funcionales (RNF).</p>
+            </div>
+
+            <div class="requirements-container">
+              <!-- Requisitos Funcionales -->
+              <div class="req-group">
+                <h3><i data-lucide="check-square"></i> Requerimientos Funcionales (RF)</h3>
+
+                <div class="req-card">
+                  <div class="req-card-header">
+                    <span class="req-id">RF-01</span>
+                    <span class="req-priority priority-must">Must Have</span>
+                  </div>
+                  <div class="req-name">Ingesta Multivariable en Tiempo Real</div>
+                  <div class="req-desc">Captura simultánea de PM1.0, PM2.5, PM10, CO2, TVOCs, temperatura, humedad y presión atmosférica cada 60s.</div>
+                  <div class="req-criteria">Criterio: Trama encriptada transmitida vía LoRaWAN/LTE-M con marca UTC.</div>
+                </div>
+
+                <div class="req-card">
+                  <div class="req-card-header">
+                    <span class="req-id">RF-02</span>
+                    <span class="req-priority priority-must">Must Have</span>
+                  </div>
+                  <div class="req-name">Compensación Climática Higroscópica</div>
+                  <div class="req-desc">Aplicación del modelo Kappa-Köhler para corregir el crecimiento de aerosoles ópticos cuando HR &gt; 75%.</div>
+                  <div class="req-criteria">Criterio: Error relativo &lt; ±5% respecto a estación de referencia MCERTS.</div>
+                </div>
+
+                <div class="req-card">
+                  <div class="req-card-header">
+                    <span class="req-id">RF-03</span>
+                    <span class="req-priority priority-must">Must Have</span>
+                  </div>
+                  <div class="req-name">Gemelo Digital 3D Interactivo</div>
+                  <div class="req-desc">Renderizado tridimensional procedural con rotación orbital, zoom, vista explosionada y corte de rayos X.</div>
+                  <div class="req-criteria">Criterio: Fluidez sostenida a 60 FPS en WebGL sin complementos externos.</div>
+                </div>
+
+                <div class="req-card">
+                  <div class="req-card-header">
+                    <span class="req-id">RF-04</span>
+                    <span class="req-priority priority-should">Should Have</span>
+                  </div>
+                  <div class="req-name">Simulación Climática Dinámica</div>
+                  <div class="req-desc">Entorno visual interactivo de sol radiante, lluvia torrencial con partículas animadas y modo noche.</div>
+                  <div class="req-criteria">Criterio: Conmutación instantánea de iluminación, sombras y física de lluvia.</div>
+                </div>
+
+                <div class="req-card">
+                  <div class="req-card-header">
+                    <span class="req-id">RF-05</span>
+                    <span class="req-priority priority-must">Must Have</span>
+                  </div>
+                  <div class="req-name">Trazabilidad de Ensamble y Calidad (QA/QC)</div>
+                  <div class="req-desc">Registro en base de datos de pruebas ICT, estanqueidad IP65, calibración de gases y 48h de Burn-In.</div>
+                  <div class="req-criteria">Criterio: Asignación de código QR y UUID criptográfico único por estación.</div>
+                </div>
+              </div>
+
+              <!-- Requisitos No Funcionales -->
+              <div class="req-group">
+                <h3><i data-lucide="shield-check"></i> Requerimientos No Funcionales (RNF)</h3>
+
+                <div class="req-card">
+                  <div class="req-card-header">
+                    <span class="req-id">RNF-01</span>
+                    <span class="badge-tag">Rendimiento</span>
+                  </div>
+                  <div class="req-name">Tiempo de Carga y Tasa de Cuadros</div>
+                  <div class="req-desc">La plataforma web debe inicializar en menos de 1.8 segundos y sostener 60 FPS en render 3D.</div>
+                  <div class="req-criteria">Estándar: ISO 25010 - Eficiencia de Desempeño.</div>
+                </div>
+
+                <div class="req-card">
+                  <div class="req-card-header">
+                    <span class="req-id">RNF-02</span>
+                    <span class="badge-tag">Confiabilidad</span>
+                  </div>
+                  <div class="req-name">Autonomía Solar sin Radiación</div>
+                  <div class="req-desc">El hardware debe operar de manera continua durante 72 horas con su batería LiFePO4 de 6000 mAh.</div>
+                  <div class="req-criteria">Estándar: ISO 25010 - Tolerancia a Fallos y Disponibilidad.</div>
+                </div>
+
+                <div class="req-card">
+                  <div class="req-card-header">
+                    <span class="req-id">RNF-03</span>
+                    <span class="badge-tag">Seguridad</span>
+                  </div>
+                  <div class="req-name">Autenticación mTLS y Cifrado AES</div>
+                  <div class="req-desc">Cripto-chip de hardware para inyección de certificados TLS y cifrado AES-128 en transmisiones LoRa/LTE.</div>
+                  <div class="req-criteria">Estándar: ISO 25010 - Confidencialidad e Integridad.</div>
+                </div>
+
+                <div class="req-card">
+                  <div class="req-card-header">
+                    <span class="req-id">RNF-04</span>
+                    <span class="badge-tag">Robustez</span>
+                  </div>
+                  <div class="req-name">Estanqueidad IP65 y Carga Eólica</div>
+                  <div class="req-desc">Gabinete hermético NEMA 4X resistente a chorros de agua a presión y vientos de 120 km/h.</div>
+                  <div class="req-criteria">Estándar: IEC 60529 / Grado IP65 / NEMA 4X.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================== -->
+          <!-- PESTAÑAS MODO PLANTA DE PRODUCCIÓN (500 UDS/MES) -->
+          <!-- ============================================== -->
+
+          <!-- TAB PLANTA 1: ESTACIONES Y PUESTOS -->
+          <div id="tab-plant-stations" class="tab-pane">
+            <div class="pane-header">
+              <div class="pane-header-row">
+                <h2>Línea de Ensamble Celular 'U'</h2>
+                <button class="btn-toggle-all" onclick="toggleAllAccordions('tab-plant-stations')">
+                  <i data-lucide="chevrons-up-down"></i> Todo
+                </button>
+              </div>
+              <p>Haga clic en una estación para desplegar su procedimiento y enfocar el 3D.</p>
+            </div>
+
+            <div class="component-list">
+              <div class="comp-item plant-station-item open" data-station="st1">
+                <div class="comp-header-row">
+                  <div class="comp-icon"><i data-lucide="wrench"></i></div>
+                  <div class="comp-title-area">
+                    <h4>1. Pre-ensamble Chasis & Sensores</h4>
+                    <span class="badge-tag">CT: 12.5 min</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Montaje de SPS30 con dampers de silicona, BME680, SCD41 y arnés JST con torque controlado de 0.4 N·m.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag tag-esd">Zona EPA Antiestática</span>
+                    <span class="badge-tag">Atornillador Neumático</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item plant-station-item" data-station="st2">
+                <div class="comp-header-row">
+                  <div class="comp-icon"><i data-lucide="cpu"></i></div>
+                  <div class="comp-title-area">
+                    <h4>2. Flasheo Firmware & Test ICT</h4>
+                    <span class="badge-tag tag-esd">CT: 8.0 min</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Jig Pogo-Pin automatizado. Inyección de certificados TLS criptográficos, test Deep-Sleep (&lt;150µA) y verificación de enlace RF LoRaWAN/Wi-Fi.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Jig Pogo-Pin</span>
+                    <span class="badge-tag tag-cert">Certificado Cripto</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item plant-station-item" data-station="st3">
+                <div class="comp-header-row">
+                  <div class="comp-icon"><i data-lucide="box"></i></div>
+                  <div class="comp-title-area">
+                    <h4>3. Integración Gabinete IP65</h4>
+                    <span class="badge-tag">CT: 14.0 min</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Inserción de bandeja hot-swap y batería LiFePO4 6000mAh en gabinete ASA. Sellado perimetral con O-ring de EPDM y apriete de prensaestopas PG9.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Junta EPDM</span>
+                    <span class="badge-tag tag-qa">Prensaestopas PG9</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item plant-station-item" data-station="st4">
+                <div class="comp-header-row">
+                  <div class="comp-icon"><i data-lucide="gauge"></i></div>
+                  <div class="comp-title-area">
+                    <h4>4. Banco de Hermeticidad IP65</h4>
+                    <span class="badge-tag tag-qa">CT: 5.0 min</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Prueba neumática de caída de presión diferencial de aire a +20 kPa durante 60s. Fuga admisible &lt; 0.05 sccm.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag tag-qa">Prueba No Destructiva</span>
+                    <span class="badge-tag">Sensor Presión Dif.</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item plant-station-item" data-station="st5">
+                <div class="comp-header-row">
+                  <div class="comp-icon"><i data-lucide="flask-conical"></i></div>
+                  <div class="comp-title-area">
+                    <h4>5. Calibración Metrológica Gases</h4>
+                    <span class="badge-tag tag-cert">CT: 15.0 min</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Cámara hermética con gas CO2 y aerosol PSL 2.5µm patrón. Ajuste de curvas polinómicas en EEPROM trazables a norma MCERTS.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag tag-cert">Gases Patrón</span>
+                    <span class="badge-tag">Trazabilidad MCERTS</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item plant-station-item" data-station="st6">
+                <div class="comp-header-row">
+                  <div class="comp-icon"><i data-lucide="flame"></i></div>
+                  <div class="comp-title-area">
+                    <h4>6. Cámara Burn-In Térmico (48h)</h4>
+                    <span class="badge-tag tag-stress">Rack 50 uds</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Estrés continuo de 48 horas a +45°C y 80% HR con telemetría activa en tiempo real para eliminar mortalidad infantil de semiconductores.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag tag-stress">45°C / 80% HR</span>
+                    <span class="badge-tag">Telemetría 60s</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item plant-station-item" data-station="st7">
+                <div class="comp-header-row">
+                  <div class="comp-icon"><i data-lucide="package-check"></i></div>
+                  <div class="comp-title-area">
+                    <h4>7. Inspección OQC, QR & Empaque</h4>
+                    <span class="badge-tag">CT: 10.0 min</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Inspección en cabina D65, inclusión de kit de mástil, impresión térmica de QR/S/N, pesaje de precisión y empaque Kraft corrugado.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Cabina Luz D65</span>
+                    <span class="badge-tag">Muelle Despacho FGS</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- INFRAESTRUCTURA DE SERVICIOS Y SOSTENIBILIDAD PISO 1 & CUBIERTA -->
+              <div class="comp-item plant-station-item" data-station="water">
+                <div class="comp-header-row">
+                  <div class="comp-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;"><i data-lucide="droplets"></i></div>
+                  <div class="comp-title-area">
+                    <h4>Sistema de Recolección de Agua (10.000 L)</h4>
+                    <span class="badge-tag tag-cert">Sostenibilidad P1</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>2x Tanques cilíndricos verticales de 5.000 L (HDPE tricapa UV) con bajantes desde cubierta, filtro ciclónico, skid de bombeo dúplex presurizado y lecho multimedia.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">10.000 L Capacidad</span>
+                    <span class="badge-tag">-65% Agua Potable</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item plant-station-item" data-station="solar">
+                <div class="comp-header-row">
+                  <div class="comp-icon" style="background: rgba(234, 179, 8, 0.15); color: #eab308;"><i data-lucide="sun"></i></div>
+                  <div class="comp-title-area">
+                    <h4>Parque Solar Fotovoltaico (13.2 kWp)</h4>
+                    <span class="badge-tag tag-esd">Energía Limpia</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Arreglo de 24 paneles solares monocristalinos bifaciales en cubierta a 15° de inclinación con inversores trifásicos e inyección a microrred industrial.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">24x Módulos 550W</span>
+                    <span class="badge-tag">85% Autoconsumo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB PLANTA: SEDE CORPORATIVA Y ADMINISTRATIVA (ORGANIGRAMA) -->
+          <div id="tab-plant-admin" class="tab-pane">
+            <div class="pane-header">
+              <div class="pane-header-row">
+                <h2>Sede Corporativa & Organigrama</h2>
+                <button class="btn-toggle-all" onclick="toggleAllAccordions('tab-plant-admin')">
+                  <i data-lucide="chevrons-up-down"></i> Todo
+                </button>
+              </div>
+              <p>Estructura de 5 direcciones + Gerencia. Haga clic para enfocar la oficina en 3D.</p>
+            </div>
+
+            <div class="component-list">
+              <div class="comp-item admin-dept-item open" data-dept="ceo">
+                <div class="comp-header-row">
+                  <div class="comp-icon" style="background: rgba(14, 165, 233, 0.15); color: var(--accent-cyan);"><i data-lucide="crown"></i></div>
+                  <div class="comp-title-area">
+                    <h4>Dirección General & Junta</h4>
+                    <span class="badge-tag tag-cert">Alta Gerencia</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p><strong>CEO - Gerente General:</strong> Estrategia institucional, gobierno corporativo, atracción de inversión, cultura y resultados. Sala de juntas con telepresencia 4K.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Junta de Accionistas</span>
+                    <span class="badge-tag">Presidencia</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item admin-dept-item" data-dept="cpo">
+                <div class="comp-header-row">
+                  <div class="comp-icon" style="background: rgba(168, 85, 247, 0.15); color: #c084fc;"><i data-lucide="sparkles"></i></div>
+                  <div class="comp-title-area">
+                    <h4>1. Producto & Innovación (CPO)</h4>
+                    <span class="badge-tag tag-esd">UX/UI & Roadmap</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Product Manager, Product Owner, Diseñador UX/UI, Especialista Ambiental y QA de Producto. Definición de backlog y validación climática.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Figma / Jira</span>
+                    <span class="badge-tag">Portafolio</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item admin-dept-item" data-dept="cto">
+                <div class="comp-header-row">
+                  <div class="comp-icon" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa;"><i data-lucide="code-2"></i></div>
+                  <div class="comp-title-area">
+                    <h4>2. Software, Datos y Nube (CTO)</h4>
+                    <span class="badge-tag tag-qa">Cloud & Data/IA</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Arquitecto de Software, Desarrolladores Backend/Frontend/Móvil, Ingeniero de Datos e IA, DevOps/SRE y Ciberseguridad.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">AWS / GCP Cloud</span>
+                    <span class="badge-tag">Pipelines ML</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item admin-dept-item" data-dept="hwd">
+                <div class="comp-header-row">
+                  <div class="comp-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald);"><i data-lucide="cpu"></i></div>
+                  <div class="comp-title-area">
+                    <h4>3. Hardware & IoT (Lab R&D)</h4>
+                    <span class="badge-tag tag-cert">Laboratorio Electrónico</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Ingeniero Electrónico, Ingeniero Firmware (OTA), Diseñador Industrial, QA Hardware y Técnico de Laboratorio. Diseño esquemático y prototipado.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Osciloscopios SMD</span>
+                    <span class="badge-tag">Firmware C/C++</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item admin-dept-item" data-dept="coo">
+                <div class="comp-header-row">
+                  <div class="comp-icon" style="background: rgba(245, 158, 11, 0.15); color: var(--accent-amber);"><i data-lucide="headphones"></i></div>
+                  <div class="comp-title-area">
+                    <h4>4. Operaciones & NOC (COO)</h4>
+                    <span class="badge-tag tag-stress">Centro NOC 24/7</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Project Manager, Técnicos de Campo, Centro de Monitoreo NOC 24/7 con Video Wall, Soporte N1/N2 y Customer Success Manager.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Video Wall NOC</span>
+                    <span class="badge-tag">SLA 99.8%</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="comp-item admin-dept-item" data-dept="cfo">
+                <div class="comp-header-row">
+                  <div class="comp-icon" style="background: rgba(100, 116, 139, 0.15); color: #94a3b8;"><i data-lucide="briefcase"></i></div>
+                  <div class="comp-title-area">
+                    <h4>5. Comercial & Corporativo (CFO)</h4>
+                    <span class="badge-tag">Licitaciones B2G</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Ejecutivos de Cuenta, Analistas de Licitaciones Públicas (Secop II), Marketing, Finanzas, Compras y Asesoría Jurídica.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">Secop II</span>
+                    <span class="badge-tag">Finanzas & Legal</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- INFRAESTRUCTURA DE DATOS PISO 2 -->
+              <div class="comp-item admin-dept-item" data-dept="datacenter">
+                <div class="comp-header-row">
+                  <div class="comp-icon" style="background: rgba(6, 182, 212, 0.15); color: #06b6d4;"><i data-lucide="server"></i></div>
+                  <div class="comp-title-area">
+                    <h4>Infraestructura de Datos & Servidores IoT</h4>
+                    <span class="badge-tag tag-qa">Tier II Data Center</span>
+                  </div>
+                  <i data-lucide="chevron-down" class="accordion-chevron"></i>
+                </div>
+                <div class="comp-body-expandable">
+                  <p>Centro de datos de alta densidad con 6 racks 42U, climatización de precisión CRAC, bandejas de fibra óptica redundantes y telemetría de red OTech en tiempo real.</p>
+                  <div class="station-meta-tags">
+                    <span class="badge-tag">6x Racks 42U</span>
+                    <span class="badge-tag">Fibra 10 Gbps Redundante</span>
+                    <span class="badge-tag">CRAC Precisión</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB PLANTA 2: SIMULACIÓN EN VIVO Y ESTADO DE LÍNEA -->
+          <div id="tab-plant-sim" class="tab-pane">
+            <div class="pane-header">
+              <h2>Panel de Control y Simulación en Vivo</h2>
+              <p>Monitoreo dinámico del flujo de materiales y métricas de manufactura en tiempo real.</p>
+            </div>
+
+            <div class="sim-dashboard-grid">
+              <div class="sim-metric-card">
+                <div class="metric-top">
+                  <span class="metric-title">Tasa de Producción</span>
+                  <i data-lucide="activity" class="metric-icon"></i>
+                </div>
+                <div class="metric-number highlight-cyan">25.0 <small>uds/día</small></div>
+                <div class="metric-sub">Meta mensual: 500 uds (20 días laborables)</div>
+              </div>
+
+              <div class="sim-metric-card">
+                <div class="metric-top">
+                  <span class="metric-title">Takt Time de la Línea</span>
+                  <i data-lucide="timer" class="metric-icon"></i>
+                </div>
+                <div class="metric-number highlight-green">16.8 <small>min/ud</small></div>
+                <div class="metric-sub">Tiempo disponible neto: 420 min / turno</div>
+              </div>
+
+              <div class="sim-metric-card">
+                <div class="metric-top">
+                  <span class="metric-title">Inventario en Proceso (WIP)</span>
+                  <i data-lucide="boxes" class="metric-icon"></i>
+                </div>
+                <div id="sim-wip-val" class="metric-number highlight-amber">7 <small>unidades</small></div>
+                <div class="metric-sub">Línea balanceada sin atascos (Lean)</div>
+              </div>
+
+              <div class="sim-metric-card">
+                <div class="metric-top">
+                  <span class="metric-title">Rendimiento First Pass (FPY)</span>
+                  <i data-lucide="check-circle" class="metric-icon"></i>
+                </div>
+                <div class="metric-number highlight-green">98.4%</div>
+                <div class="metric-sub">Rechazos IQC/ICT segregados a cuarentena</div>
+              </div>
+            </div>
+
+            <div class="live-flow-monitor">
+              <h3>Estado en Vivo de las Estaciones</h3>
+              <div class="flow-status-list">
+                <div class="flow-status-row">
+                  <span class="station-dot dot-green"></span>
+                  <span class="flow-station-name">Estación 1 (Chasis & Sensores):</span>
+                  <span class="flow-status-badge badge-active">Operando &bull; Pieza #19</span>
+                </div>
+                <div class="flow-status-row">
+                  <span class="station-dot dot-green"></span>
+                  <span class="flow-station-name">Estación 2 (Flasheo & ICT):</span>
+                  <span class="flow-status-badge badge-active">Operando &bull; Pieza #19</span>
+                </div>
+                <div class="flow-status-row">
+                  <span class="station-dot dot-green"></span>
+                  <span class="flow-station-name">Estación 3 (Integración IP65):</span>
+                  <span class="flow-status-badge badge-active">Operando &bull; Pieza #18</span>
+                </div>
+                <div class="flow-status-row">
+                  <span class="station-dot dot-green"></span>
+                  <span class="flow-station-name">Estación 4 (Hermeticidad IP65):</span>
+                  <span class="flow-status-badge badge-idle">Listo para recibir</span>
+                </div>
+                <div class="flow-status-row">
+                  <span class="station-dot dot-green"></span>
+                  <span class="flow-station-name">Estación 5 (Calibración Gases):</span>
+                  <span class="flow-status-badge badge-active">Ciclo Lote #4</span>
+                </div>
+                <div class="flow-status-row">
+                  <span class="station-dot dot-amber"></span>
+                  <span class="flow-station-name">Estación 6 (Burn-In 48h):</span>
+                  <span class="flow-status-badge badge-burnin">50/50 Nodos en Test</span>
+                </div>
+                <div class="flow-status-row">
+                  <span class="station-dot dot-green"></span>
+                  <span class="flow-station-name">Estación 7 (OQC & Empaque):</span>
+                  <span class="flow-status-badge badge-active">Empacando #18</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB PLANTA 3: BALANCEO DE LÍNEA Y TAKT TIME -->
+          <div id="tab-plant-balancing" class="tab-pane">
+            <div class="pane-header">
+              <h2>Balanceo de Línea & Gráfico Yamazumi</h2>
+              <p>Takt Time objetivo: 16.8 minutos. Ninguna estación supera el límite de demanda.</p>
+            </div>
+
+            <div class="chart-container-balancing">
+              <div class="chart-header-legend">
+                <span class="legend-item"><span class="legend-box box-bar"></span> Tiempo de Ciclo (CT)</span>
+                <span class="legend-item"><span class="legend-box box-takt"></span> Takt Time (16.8 min)</span>
+              </div>
+
+              <div class="balancing-bars">
+                <div class="bar-row">
+                  <span class="bar-label">Est 1 (Chasis)</span>
+                  <div class="bar-track">
+                    <div class="bar-fill" style="width: 74.4%;"><span>12.5 min</span></div>
+                    <div class="takt-line"></div>
+                  </div>
+                  <span class="bar-percent">74%</span>
+                </div>
+
+                <div class="bar-row">
+                  <span class="bar-label">Est 2 (Flasheo)</span>
+                  <div class="bar-track">
+                    <div class="bar-fill" style="width: 47.6%;"><span>8.0 min</span></div>
+                    <div class="takt-line"></div>
+                  </div>
+                  <span class="bar-percent">48%</span>
+                </div>
+
+                <div class="bar-row">
+                  <span class="bar-label">Est 3 (Gabinete)</span>
+                  <div class="bar-track">
+                    <div class="bar-fill bar-bottleneck" style="width: 83.3%;"><span>14.0 min</span></div>
+                    <div class="takt-line"></div>
+                  </div>
+                  <span class="bar-percent highlight-amber">83% (Max)</span>
+                </div>
+
+                <div class="bar-row">
+                  <span class="bar-label">Est 4 (Fuga IP65)</span>
+                  <div class="bar-track">
+                    <div class="bar-fill" style="width: 29.8%;"><span>5.0 min</span></div>
+                    <div class="takt-line"></div>
+                  </div>
+                  <span class="bar-percent">30%</span>
+                </div>
+
+                <div class="bar-row">
+                  <span class="bar-label">Est 5 (Calibración)</span>
+                  <div class="bar-track">
+                    <div class="bar-fill" style="width: 89.2%;"><span>15.0 min / 5u</span></div>
+                    <div class="takt-line"></div>
+                  </div>
+                  <span class="bar-percent">89%</span>
+                </div>
+
+                <div class="bar-row">
+                  <span class="bar-label">Est 7 (Empaque)</span>
+                  <div class="bar-track">
+                    <div class="bar-fill" style="width: 59.5%;"><span>10.0 min</span></div>
+                    <div class="takt-line"></div>
+                  </div>
+                  <span class="bar-percent">60%</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="lean-summary-card">
+              <div class="lean-stat">
+                <span class="lean-label">Eficiencia de Balanceo:</span>
+                <span class="lean-val highlight-green">86.4%</span>
+              </div>
+              <div class="lean-stat">
+                <span class="lean-label">Operarios Directos:</span>
+                <span class="lean-val">5 operarios en U</span>
+              </div>
+              <div class="lean-stat">
+                <span class="lean-label">Lead Time Total:</span>
+                <span class="lean-val">49.2 Horas (incl. Burn-In)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB PLANTA 4: MODELOS CAD Y AUTODESK FACTORY -->
+          <div id="tab-plant-autodesk" class="tab-pane">
+            <div class="pane-header">
+              <h2>Modelos CAD & Autodesk Factory</h2>
+              <p>Recursos de ingeniería para Autodesk Inventor, Fusion 360 y AutoCAD.</p>
+            </div>
+
+            <div class="autodesk-downloads-grid">
+              <div class="cad-resource-card">
+                <div class="cad-resource-icon"><i data-lucide="layers"></i></div>
+                <div class="cad-resource-info">
+                  <h4>Script Automatizado Autodesk Fusion 360</h4>
+                  <p>Genera la nave industrial (20m x 15m), puestos ESD, racks y layout en 3D en 1 clic.</p>
+                  <a href="crear_planta_fusion360.py" download class="btn-primary-sm">
+                    <i data-lucide="download"></i> Descargar Python Fusion 360
+                  </a>
+                </div>
+              </div>
+
+              <div class="cad-resource-card">
+                <div class="cad-resource-icon"><i data-lucide="box"></i></div>
+                <div class="cad-resource-info">
+                  <h4>Modelo 3D Nave Industrial (Wavefront OBJ/MTL)</h4>
+                  <p>Geometría 3D de la planta con materiales, pasillos amarillos de seguridad y áreas EPA.</p>
+                  <a href="planta_otech_3d.obj" download class="btn-secondary-sm">
+                    <i data-lucide="download"></i> Descargar OBJ 3D Planta
+                  </a>
+                </div>
+              </div>
+
+              <div class="cad-resource-card" style="border: 1px solid var(--accent-cyan); background: rgba(14, 165, 233, 0.06);">
+                <div class="cad-resource-icon" style="color: var(--accent-cyan);"><i data-lucide="file-check"></i></div>
+                <div class="cad-resource-info">
+                  <h4>Manual de Ingeniería de Planta (PDF Oficial)</h4>
+                  <p>Documento corporativo formal con distribución, tiempos estándar, balanceo y organigrama.</p>
+                  <a href="PLANTA_PRODUCCION_OTECH.pdf" download class="btn-primary-sm">
+                    <i data-lucide="download"></i> Descargar Manual en PDF
+                  </a>
+                </div>
+              </div>
+
+              <div class="cad-resource-card" style="border: 1px solid #10b981; background: rgba(16, 185, 129, 0.06);">
+                <div class="cad-resource-icon" style="color: var(--accent-emerald);"><i data-lucide="file-check-2"></i></div>
+                <div class="cad-resource-info">
+                  <h4>Etapa de Análisis Completa (Fase 1 SDLC)</h4>
+                  <p>Resolución exhaustiva: Problema, Definición, 4 Componentes y 18 Requerimientos ISO 25010.</p>
+                  <a href="ETAPA_DE_ANALISIS_PROYECTO_OTECH.pdf" download class="btn-primary-sm" style="background: linear-gradient(135deg, #10b981, #059669);">
+                    <i data-lucide="download"></i> Descargar Documento Oficial (PDF)
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1411 @@
+OTech
+
+PLAN DE NEGOCIO Y CONSTITUCIÓN EMPRESARIAL
+
+Hardware, software y servicios para redes institucionales de monitoreo inteligente de la calidad del aire
+
+Datos confiables para decisiones de aire limpio
+
+Dato
+
+Información
+
+Empresa propuesta
+
+OTech S.A.S.
+
+Documento
+
+Desarrollo del esquema para la constitución de la empresa
+
+Presentado por
+
+Jamyson Steven Rolón Castaño / [Integrante 2] / [Integrante 3]
+
+Docente
+
+Ing. Leonardo Molina
+
+Institución
+
+Universidad Distrital Francisco José de Caldas
+
+Lugar y fecha
+
+Bogotá D. C. | Agosto de 2026
+
+Alcance del documento. OTech es una propuesta académica y precomercial. Las especificaciones, costos, certificaciones, licencias y trámites deberán validarse mediante pilotos, pruebas metrológicas y asesoría jurídica antes de contratar con entidades públicas o clientes industriales.
+
+INTRODUCCIÓN
+
+La contaminación del aire afecta la salud, la productividad y la gestión ambiental de las ciudades y de los complejos industriales. Las autoridades públicas necesitan mayor cobertura espacial y datos oportunos para priorizar intervenciones; a su vez, las organizaciones privadas requieren observar sus áreas de influencia, detectar episodios, documentar acciones de mitigación y comunicar resultados de manera transparente.
+
+OTech propone evolucionar el concepto abierto de CanAirIO -orientado a ciencia ciudadana, estaciones móviles y fijas de bajo costo- hacia una solución institucional B2G y B2B. El valor no estaría en vender una tarjeta ensamblada, sino en integrar una red administrada: equipos robustos, conectividad, plataforma en la nube, aseguramiento de calidad de datos, instalación, calibración, mantenimiento, analítica y soporte con acuerdos de nivel de servicio.
+
+Posicionamiento central. OTech no reemplaza automáticamente una estación regulatoria ni un Sistema de Vigilancia de la Calidad del Aire (SVCA). Su oferta base se plantea como monitoreo indicativo y de gestión. Solo se presentará como evidencia regulatoria cuando el método, los equipos, la calibración, la operación y la autoridad competente lo permitan.
+
+Resumen ejecutivo
+
+Problema: las redes de referencia son necesarias, pero su costo y complejidad limitan la densidad espacial; además, muchas instalaciones privadas carecen de alertas y tableros ambientales integrados.
+
+Solución: OTech AirNet, una combinación de nodos de monitoreo, plataforma multiusuario, analítica, reportes y servicios de operación en campo.
+
+Clientes: gobernaciones, alcaldías, autoridades ambientales, empresas con fuentes o exposición a contaminantes, constructoras, operadores logísticos, campus y grandes instalaciones.
+
+Modelo de ingreso: venta o arrendamiento de equipos, implementación, suscripción anual de software, mantenimiento, calibración, analítica y capacitación.
+
+Ventaja: una oferta modular y trazable que combina una base tecnológica abierta con endurecimiento industrial, servicio local, gobierno del dato e integración institucional.
+
+Objetivos
+
+Diseñar y comercializar redes de monitoreo indicativo de la calidad del aire para instituciones públicas y privadas.
+
+Convertir datos de sensores en alertas, mapas, indicadores y reportes útiles para decisiones operativas y ambientales.
+
+Implementar un sistema de calidad que incluya trazabilidad, calibración, mantenimiento y clasificación explícita de los datos.
+
+Construir ingresos recurrentes por software, soporte y operación, además de la venta o arrendamiento del hardware.
+
+A) ASPECTOS DE LA EMPRESA
+
+1. Nombre de la empresa
+
+Razón social propuesta: OTech S.A.S.
+
+Marca comercial: OTech.
+
+Línea de solución: OTech AirNet.
+
+Eslogan: “Datos confiables para decisiones de aire limpio”.
+
+El prefijo “O” puede asociarse con oxígeno, observación y operación; “Tech” comunica el componente tecnológico. Antes de registrar la sociedad y lanzar la marca se debe consultar homonimia, antecedentes marcarios y disponibilidad de dominio. El nombre CanAirIO se utilizará únicamente para reconocer la base tecnológica o la inspiración cuando corresponda, sin insinuar afiliación comercial.
+
+2. Concepto de logo e identidad visual
+
+El símbolo propuesto integra una “O” como anillo de aire y un punto interior que representa el sensor. La palabra OTech se construye con tipografía limpia y geométrica. La identidad debe ser original y diferenciada de CanAirIO.
+
+Elemento
+
+Código
+
+Uso
+
+Azul profundo
+
+#17365D
+
+Confianza, instituciones y tecnología
+
+Turquesa
+
+#138A8A
+
+Aire, ambiente y datos en tiempo real
+
+Gris claro
+
+#F2F4F7
+
+Neutralidad para informes y tableros
+
+Blanco
+
+#FFFFFF
+
+Claridad y legibilidad
+
+El tratamiento incluido en la portada es un boceto tipográfico; el logo definitivo debe diseñarse en formato vectorial y someterse a búsqueda marcaria.
+
+3. Historia
+
+OTech nace como iniciativa de estudiantes de ingeniería de sistemas que identifican una brecha entre los prototipos abiertos de bajo costo y las necesidades de una entidad territorial o una industria. Proyectos como CanAirIO muestran que es posible medir variables como PM2.5, CO2 e índices de calidad del aire con estaciones fijas o móviles y publicar información mediante tecnologías abiertas.
+
+La empresa se proyecta para construir la capa que exige un cliente institucional: selección de sensores según el caso de uso, gabinete y alimentación adecuados, comunicaciones redundantes, inventario de activos, seguridad, plataforma multiusuario, control de calidad, mantenimiento, trazabilidad y soporte. El primer año se concentrará en un producto mínimo viable y dos pilotos de campo; después se ampliará el portafolio con módulos de gases y servicios analíticos, sujetos a validación técnica.
+
+4. Misión
+
+Misión. Diseñar, implementar y operar soluciones confiables de hardware, software y analítica que permitan a entidades públicas y organizaciones privadas comprender la calidad del aire, responder oportunamente a eventos y tomar decisiones ambientales basadas en datos.
+
+5. Visión
+
+Visión 2031. Ser una empresa colombiana referente en redes inteligentes de monitoreo indicativo y gestión de la calidad del aire, reconocida por la trazabilidad de sus datos, la interoperabilidad de su plataforma y la capacidad de acompañar despliegues institucionales e industriales en América Latina.
+
+6. Principios y valores
+
+Valor
+
+Aplicación en OTech
+
+Rigor técnico
+
+No confundir precisión aparente con validez; documentar límites, incertidumbre y condiciones de uso.
+
+Transparencia
+
+Distinguir dato crudo, validado, corregido y estimado; conservar historial y metadatos.
+
+Servicio público
+
+Diseñar información comprensible para funcionarios, comunidades y responsables operativos.
+
+Innovación responsable
+
+Adoptar tecnología abierta sin incumplir licencias, seguridad ni propiedad intelectual.
+
+Privacidad y seguridad
+
+Aplicar mínimo privilegio, trazabilidad de accesos y protección de cuentas y ubicaciones sensibles.
+
+Sostenibilidad
+
+Diseñar equipos reparables, modularizar repuestos y gestionar residuos eléctricos y electrónicos.
+
+Independencia técnica
+
+Reportar resultados aunque contradigan expectativas comerciales.
+
+7. Organigrama y gobierno
+
+Durante la etapa inicial se recomienda una estructura liviana, con responsabilidades claras y servicios especializados tercerizados cuando sea conveniente.
+
+Unidad
+
+Responsabilidad principal
+
+Junta de accionistas
+
+Aprueba estrategia, capital, riesgos y gobierno corporativo.
+
+Gerencia general
+
+Ventas institucionales, alianzas, finanzas y cumplimiento contractual.
+
+Dirección de tecnología
+
+Firmware, nube, aplicaciones, API, ciberseguridad y arquitectura.
+
+Dirección de operaciones y calidad
+
+Diseño de red, instalación, calibración, QA/QC, mantenimiento y SST.
+
+Dirección comercial y sector público
+
+Licitaciones, preventa, propuestas, clientes y alianzas territoriales.
+
+Administración, legal y financiera
+
+Contabilidad, nómina, compras, licencias, datos personales y contratos.
+
+Control recomendado. Las funciones de desarrollo, validación del dato y aceptación de calidad no deben recaer en una sola persona cuando el resultado tenga impacto contractual o reputacional.
+
+8. Modelo de negocio y propuesta de valor
+
+OTech operará con un modelo híbrido de producto como servicio: el cliente puede comprar o arrendar los nodos, pero la continuidad de la solución depende de servicios recurrentes de plataforma, calidad, mantenimiento y soporte.
+
+Bloque
+
+Definición para OTech
+
+Segmentos
+
+Entidades territoriales, autoridades ambientales, industrias, obras, puertos, centros logísticos, campus y grandes instalaciones.
+
+Propuesta de valor
+
+Mayor cobertura y oportunidad del dato, alertas operativas, mapas, trazabilidad, reportes e integración con sistemas del cliente.
+
+Canales
+
+Venta consultiva, SECOP II cuando aplique, alianzas con integradores, pilotos, convenios de innovación y distribuidores especializados.
+
+Relación
+
+Diagnóstico, diseño de red, instalación, capacitación, mesa de ayuda, mantenimiento preventivo y revisión periódica de desempeño.
+
+Ingresos
+
+Equipos, arrendamiento, implementación, suscripción SaaS, mantenimiento, calibración, informes, API y capacitación.
+
+Recursos clave
+
+Equipo interdisciplinario, plataforma, firmware, banco de pruebas, inventario de repuestos, procedimientos y alianzas metrológicas.
+
+Socios clave
+
+Fabricantes de sensores, laboratorios o expertos, operadores de conectividad, universidades, integradores y firmas ambientales.
+
+Costos
+
+Componentes, gabinetes, conectividad, nube, personal, desplazamientos, calibración, garantías, soporte y cumplimiento.
+
+Portafolio institucional
+
+Producto/servicio
+
+Resultado para el cliente
+
+OTech AirNode
+
+Nodo fijo o móvil con sensores modulares, almacenamiento local, diagnóstico remoto y conectividad.
+
+OTech AirCloud
+
+Plataforma multiusuario con mapas, series de tiempo, alertas, activos, mantenimiento, reportes y API.
+
+OTech Insight
+
+Analítica, tableros ejecutivos, identificación de episodios y comparación espacial/temporal.
+
+OTech FieldCare
+
+Instalación, co-ubicación, calibración, mantenimiento, repuestos, inventario y soporte.
+
+OTech Academy
+
+Capacitación a operadores, funcionarios, empresas y comunidades sobre lectura y uso responsable del dato.
+
+B) ETAPAS PARA LA PUESTA EN MARCHA
+
+9. Estudio del entorno
+
+El entorno colombiano combina una necesidad pública reconocida, obligaciones ambientales sectoriales y un ecosistema tecnológico favorable a IoT. La Resolución 2254 de 2017 define niveles máximos permisibles para contaminantes criterio, y las autoridades ambientales operan SVCA bajo protocolos de diseño y operación. Esta realidad crea oportunidades para ampliar observación y gestión, pero también obliga a OTech a ser preciso sobre el alcance de sus sensores.
+
+Factor
+
+Oportunidad
+
+Riesgo
+
+Respuesta OTech
+
+Político/institucional
+
+Planes de calidad del aire, ciudades inteligentes y control ambiental.
+
+Ciclos presupuestales y cambios de administración.
+
+Contratos por fases, indicadores y transferencia de conocimiento.
+
+Económico
+
+Alternativa de mayor densidad frente a equipos de referencia.
+
+Presión por competir solo en precio.
+
+Costo total de propiedad, SLA y resultados medibles.
+
+Social
+
+Mayor interés ciudadano por salud y transparencia.
+
+Interpretaciones alarmistas de datos no validados.
+
+Semáforos claros, notas metodológicas y educación.
+
+Tecnológico
+
+Sensores, ESP32, nube, APIs y conectividad disponibles.
+
+Deriva, obsolescencia, fallas de red y ciberataques.
+
+Modularidad, OTA controlada, buffers y seguridad por diseño.
+
+Ambiental
+
+Necesidad de detectar episodios y evaluar mitigaciones.
+
+Temperatura, humedad y polvo alteran lecturas.
+
+Pruebas de campo, co-ubicación y correcciones documentadas.
+
+Legal
+
+Norma de calidad del aire y protocolos de monitoreo.
+
+Afirmar validez regulatoria sin soporte.
+
+Clasificar uso, revisar contratos y validar con autoridad competente.
+
+Análisis DOFA
+
+Dimensión
+
+Lectura estratégica
+
+Fortalezas
+
+Integración hardware-software; modularidad; soporte local; gobierno del dato; base abierta.
+
+Oportunidades
+
+Transformación digital pública, ESG, gestión de riesgos, ciudades inteligentes y analítica ambiental.
+
+Debilidades
+
+Marca nueva, capital limitado, dependencia de sensores importados y experiencia metrológica por construir.
+
+Amenazas
+
+Competidores certificados, variación cambiaria, licitaciones de precio mínimo, cambios normativos y reputación por datos erróneos.
+
+Diferenciación frente a un montaje casero
+
+Gabinete para campo, alimentación protegida, conectores, identificación de activos y opciones de comunicación redundante.
+
+Pruebas de aceptación, periodo de estabilización, co-ubicación, mantenimiento preventivo y trazabilidad de repuestos.
+
+Plataforma multiusuario con roles, auditoría, copias de seguridad, API, alertas y gestión de flota.
+
+Acuerdos de nivel de servicio, mesa de ayuda, documentación, capacitación y reportes ejecutivos.
+
+Clasificación del dato y declaración explícita de limitaciones, incertidumbre y uso permitido.
+
+10. Definición del mercado objetivo
+
+El mercado inicial será Colombia, con prioridad en Bogotá y la región central por cercanía operativa. Se recomienda iniciar con clientes que acepten un piloto y tengan un problema delimitado: perímetro industrial, corredor vial, obra, zona portuaria, campus o red municipal complementaria.
+
+Segmento
+
+Necesidad
+
+Decisores/usuarios
+
+Gobernaciones y alcaldías
+
+Cobertura territorial, episodios, zonas escolares, corredores y comunicación pública.
+
+Secretarías de ambiente, planeación, salud, movilidad, TIC y gestión del riesgo.
+
+Autoridades ambientales
+
+Densificación indicativa, campañas, priorización y participación ciudadana.
+
+Direcciones de calidad ambiental y operación de redes.
+
+Industria y minería
+
+Perímetro, procesos, polvo, exposición y evaluación de controles.
+
+HSE, ambiental, operaciones, sostenibilidad y mantenimiento.
+
+Construcción e infraestructura
+
+Polvo, material particulado, zonas vecinas y seguimiento de medidas.
+
+Consorcios, interventorías y responsables ambientales.
+
+Logística, puertos y aeropuertos
+
+Tráfico, patios, combustión y episodios operativos.
+
+Operaciones, ambiente, seguridad y concesiones.
+
+Campus y grandes instalaciones
+
+Calidad del aire exterior/interior, ventilación y educación.
+
+Infraestructura, SST, sostenibilidad y bienestar.
+
+Mapa inicial de 30 cuentas objetivo
+
+La siguiente lista es una hipótesis de prospección, no evidencia de interés ni relación comercial. Cada cuenta debe calificarse por problema, presupuesto, proceso de compra, autoridad competente y acceso a un patrocinador interno.
+
+N.º
+
+Cuenta o perfil
+
+Caso de uso
+
+Entrada comercial
+
+1
+
+Gobernación de Cundinamarca
+
+Red departamental complementaria
+
+Ambiente/Planeación
+
+2
+
+Gobernación de Antioquia
+
+Municipios y corredores regionales
+
+Ambiente/Salud
+
+3
+
+Gobernación del Valle del Cauca
+
+Zonas urbanas e industriales
+
+Ambiente/Planeación
+
+4
+
+Gobernación de Boyacá
+
+Corredores minero-industriales
+
+Ambiente/Minas
+
+5
+
+Gobernación de Santander
+
+Áreas metropolitanas e industria
+
+Ambiente/Salud
+
+6
+
+Alcaldía de Bogotá
+
+Densificación indicativa y zonas sensibles
+
+Ambiente/TIC/Salud
+
+7
+
+Alcaldía de Medellín
+
+Red urbana y analítica territorial
+
+Ambiente/Innovación
+
+8
+
+Alcaldía de Cali
+
+Corredores viales y zonas industriales
+
+Ambiente/Movilidad
+
+9
+
+Alcaldía de Barranquilla
+
+Puertos, tráfico y expansión urbana
+
+Ambiente/Planeación
+
+10
+
+Alcaldía de Cartagena
+
+Puerto, industria y turismo
+
+Ambiente/Gestión del riesgo
+
+11
+
+Alcaldía de Bucaramanga
+
+Área urbana y movilidad
+
+Ambiente/Salud
+
+12
+
+Alcaldía de Cúcuta
+
+Tráfico y episodios transfronterizos
+
+Ambiente/Salud
+
+13
+
+Alcaldía de Manizales
+
+Topografía, movilidad y riesgo
+
+Ambiente/Planeación
+
+14
+
+Alcaldía de Pereira
+
+Movilidad y crecimiento urbano
+
+Ambiente/TIC
+
+15
+
+Alcaldía de Ibagué
+
+Obras, tráfico y expansión
+
+Ambiente/Infraestructura
+
+16
+
+Alcaldía de Villavicencio
+
+Corredores logísticos
+
+Ambiente/Movilidad
+
+17
+
+Corporación Autónoma Regional
+
+Campañas y priorización territorial
+
+Calidad ambiental
+
+18
+
+Autoridad ambiental urbana
+
+Cobertura complementaria
+
+Operación de red
+
+19
+
+Área metropolitana
+
+Análisis supramunicipal
+
+Ambiente/Movilidad
+
+20
+
+Empresa de servicios públicos
+
+Operaciones y áreas de influencia
+
+Ambiental/Operaciones
+
+21
+
+Planta cementera
+
+Polvo y perímetro industrial
+
+HSE/Ambiental
+
+22
+
+Operación minera
+
+Material particulado y comunidades
+
+Ambiental/Sostenibilidad
+
+23
+
+Refinería o terminal de combustibles
+
+Gases, perímetro y contingencias
+
+HSE/Operaciones
+
+24
+
+Puerto o terminal logístico
+
+Tráfico, patios y combustión
+
+Ambiental/Operaciones
+
+25
+
+Concesión vial
+
+Corredores, túneles y peajes
+
+Ambiental/Interventoría
+
+26
+
+Consorcio de construcción
+
+Polvo y cumplimiento del PMA
+
+Residente ambiental
+
+27
+
+Zona franca o parque industrial
+
+Red compartida para inquilinos
+
+Administración/HSE
+
+28
+
+Universidad con varios campus
+
+Investigación y gestión de campus
+
+Investigación/Sostenibilidad
+
+29
+
+Red hospitalaria
+
+Entornos sensibles y ventilación
+
+Infraestructura/SST
+
+30
+
+Centro comercial o gran bodega
+
+Ventilación, exposición y operación
+
+Facilities/SST
+
+Estrategia comercial
+
+Ofrecer diagnóstico de sitio y diseño preliminar de red antes de cotizar.
+
+Iniciar con pilotos de 3 a 10 nodos durante 8 a 12 semanas, con criterios de éxito acordados.
+
+Convertir el piloto en contrato de despliegue, plataforma y mantenimiento anual.
+
+Construir casos de éxito medibles sin publicar información sensible del cliente.
+
+Participar en compras públicas o alianzas únicamente después de preparar fichas técnicas, matriz de cumplimiento, experiencia habilitante y capacidad de soporte.
+
+11. Constitución legal de la empresa
+
+Se recomienda constituir OTech como Sociedad por Acciones Simplificada (S.A.S.) por su flexibilidad para uno o varios accionistas, gobierno corporativo adaptable y facilidad para incorporar inversión. La decisión final debe ser revisada con asesoría contable y jurídica.
+
+Etapa
+
+Acción
+
+1. Verificación
+
+Consultar homonimia, marca, dominios y conflictos con terceros.
+
+2. Documento de constitución
+
+Definir accionistas, capital autorizado/suscrito/pagado, administración, objeto, duración y reglas de decisión.
+
+3. Registro mercantil
+
+Inscribir la sociedad en la cámara de comercio de la jurisdicción del domicilio.
+
+4. RUT y NIT
+
+Completar responsabilidades tributarias mediante los canales de Cámara de Comercio/DIAN que correspondan.
+
+5. Operación
+
+Abrir cuenta bancaria, habilitar facturación electrónica cuando aplique y contratar contabilidad.
+
+6. Laboral y SST
+
+Formalizar contratos, afiliaciones y el Sistema de Gestión de Seguridad y Salud en el Trabajo.
+
+7. Datos y seguridad
+
+Adoptar política de tratamiento de datos personales y acuerdos de confidencialidad y seguridad.
+
+8. Propiedad intelectual
+
+Registrar marca, documentar autoría y cumplir licencias de software y hardware abierto.
+
+9. Comercio exterior/RAEE
+
+Validar obligaciones de importación, garantías, etiquetado y gestión de residuos según el modelo operativo.
+
+Objeto social propuesto
+
+Borrador para revisión jurídica. La sociedad tendrá por objeto diseñar, desarrollar, integrar, ensamblar, fabricar, importar, exportar, comercializar, arrendar, instalar, operar y mantener equipos electrónicos, sensores, sistemas IoT y soluciones de software para monitoreo ambiental; prestar servicios de analítica de datos, integración, consultoría, capacitación y soporte; y ejecutar actividades conexas lícitas necesarias para el desarrollo de su objeto. La prestación de ensayos acreditados o servicios reservados se realizará únicamente cuando se cuente con la habilitación aplicable o mediante terceros autorizados.
+
+Licenciamiento y relación con CanAirIO
+
+Realizar un inventario de cada repositorio, librería, diseño y dependencia utilizada; no asumir que todo el ecosistema tiene una única licencia.
+
+Mantener avisos de copyright, textos de licencia y acceso al código fuente correspondiente cuando la GPL u otra licencia lo exija al distribuir software modificado.
+
+Marcar claramente las modificaciones de OTech y no atribuir fallas propias al proyecto original.
+
+Separar mediante interfaces bien definidas los componentes abiertos y los servicios propios, y someter la arquitectura a revisión de licencias antes de comercializar.
+
+No usar el nombre, logo o comunidad CanAirIO como aval, distribuidor o socio sin autorización expresa.
+
+Advertencia. Este apartado resume riesgos generales de propiedad intelectual; no sustituye un concepto jurídico sobre GPL, marcas, diseños de hardware o contratos de distribución.
+
+12. Construcción de obras específicas: diseño de software
+
+La plataforma debe construirse como un servicio multiempresa y multiusuario. Cada medición conservará identificación de nodo, ubicación, marca de tiempo, versión de firmware, estado del sensor, variables ambientales, coeficientes aplicados y bandera de calidad.
+
+Capa
+
+Funciones
+
+Controles mínimos
+
+Dispositivo/edge
+
+Lectura de sensores, autodiagnóstico, buffer local, reloj, configuración, actualización controlada.
+
+Pérdida de red, reinicio seguro, protección de credenciales.
+
+Ingesta
+
+API o mensajería para recibir telemetría y eventos.
+
+TLS, identidad por dispositivo, límites y validación de esquema.
+
+Datos
+
+Series de tiempo, metadatos, activos, calibraciones y mantenimiento.
+
+Cifrado, copias, retención, segregación por cliente.
+
+Calidad
+
+Reglas de rango, consistencia, deriva, completitud y banderas.
+
+Distinguir crudo, validado, corregido y descartado.
+
+Aplicación
+
+Mapa, tablero, alertas, reportes, inventario, casos y roles.
+
+Accesibilidad, auditoría y mínimo privilegio.
+
+Integración
+
+API, exportación CSV/JSON y conectores institucionales.
+
+Versionado, cuotas, contratos de datos y trazabilidad.
+
+Módulos funcionales del MVP
+
+Registro y aprovisionamiento seguro de nodos.
+
+Mapa de estaciones con estado en línea, fuera de línea, mantenimiento y alerta.
+
+Gráficas de PM1, PM2.5, PM10, temperatura, humedad y las variables efectivamente instaladas.
+
+Motor de alertas configurables por umbral, persistencia y horario, con notificación por correo o canal acordado.
+
+Gestión de usuarios, roles, organizaciones, sitios y permisos.
+
+Bitácora de calibración, intervención, cambio de sensor y versión de firmware.
+
+Exportación de datos, API documentada e informes periódicos.
+
+Panel de calidad: cobertura, latencia, datos inválidos, deriva y salud de la flota.
+
+Requisitos no funcionales
+
+Atributo
+
+Criterio de diseño
+
+Disponibilidad
+
+Objetivo contractual por plan; monitoreo, redundancia y comunicación de incidentes.
+
+Seguridad
+
+TLS, secretos fuera del código, RBAC, MFA para administradores, registro de auditoría y gestión de vulnerabilidades.
+
+Escalabilidad
+
+Agregar nodos y clientes sin rediseñar la plataforma; colas y procesamiento desacoplado.
+
+Interoperabilidad
+
+API versionada, formatos abiertos, exportación y documentación.
+
+Usabilidad
+
+Tableros por rol, lenguaje no técnico y diseño adaptable.
+
+Trazabilidad
+
+Historial de datos, calibraciones, firmware, configuración y acciones de usuario.
+
+Recuperación
+
+Copias verificadas, objetivos RPO/RTO y procedimiento de continuidad.
+
+Gobierno y calidad del dato
+
+OTech aplicará un flujo de cuatro estados: dato crudo recibido; dato validado automáticamente; dato revisado o corregido con trazabilidad; y dato publicado. No se eliminarán silenciosamente lecturas: cada exclusión conservará una razón. Los indicadores agregados deberán reportar cobertura temporal y no calcularse si el porcentaje de datos válidos es insuficiente para el uso acordado.
+
+13. Consecución de maquinaria y equipo
+
+La referencia CanAirIO utiliza placas ESP32 y soporta diferentes sensores de partículas y CO2. OTech podrá usar esa base en prototipos, pero la versión institucional deberá seleccionar componentes por disponibilidad, repetibilidad, documentación, vida útil y desempeño en el entorno real.
+
+Subsistema
+
+Opción de diseño
+
+Criterio institucional
+
+Procesamiento
+
+ESP32 para prototipo o controlador/gateway industrial equivalente.
+
+Identidad del dispositivo, watchdog, almacenamiento local y actualización segura.
+
+Partículas
+
+Sensor óptico PM1/PM2.5/PM10 compatible y evaluado.
+
+Filtro de plausibilidad, limpieza, vida útil y reemplazo modular.
+
+CO2
+
+Sensor NDIR cuando el caso de uso sea ventilación o exposición.
+
+No confundir CO2 con contaminación exterior total.
+
+Gases opcionales
+
+Módulos para CO, NO2, O3, SO2 o VOC según proyecto.
+
+Requieren selección, compensación y validación específica; no vienen garantizados por la base.
+
+Meteorología
+
+Temperatura, humedad; opcional presión, viento y lluvia.
+
+Ubicación y abrigo adecuados para interpretar datos.
+
+Comunicaciones
+
+Wi-Fi, Ethernet, LTE-M/NB-IoT/4G o LoRaWAN según cobertura.
+
+Buffer local y reenvío ante pérdida de conectividad.
+
+Energía
+
+Red eléctrica protegida, UPS o solar dimensionado.
+
+Protección, puesta a tierra y autonomía verificable.
+
+Gabinete
+
+Envolvente para exterior, prensaestopas, ventilación controlada y montaje.
+
+Objetivo IP sujeto a diseño y ensayo; evitar prometer IP65 sin prueba.
+
+Equipo de laboratorio y operación
+
+Fuentes de alimentación de laboratorio, multímetros, estación de soldadura, herramientas ESD y programadores.
+
+Banco de envejecimiento y registro continuo para pruebas de 48 a 72 horas.
+
+Equipo patrón o acceso a co-ubicación con estación de referencia mediante alianza autorizada.
+
+Portátiles de configuración, instrumentos de red, kits de instalación y elementos de trabajo en alturas cuando aplique.
+
+Inventario de repuestos críticos: sensores, fuentes, módems, cables, conectores, filtros y gabinetes.
+
+Proceso de aseguramiento de calidad
+
+Etapa
+
+Evidencia
+
+Recepción
+
+Verificar lote, documentos, daño físico y trazabilidad de proveedor.
+
+Ensamble
+
+Lista de chequeo, serialización, fotografías y control ESD.
+
+Prueba funcional
+
+Lecturas, comunicaciones, reloj, buffer, consumo y actualización.
+
+Burn-in
+
+Operación continua y detección de fallas tempranas.
+
+Co-ubicación/calibración
+
+Comparar bajo condiciones representativas y registrar coeficientes y vigencia.
+
+Aceptación
+
+Acta con configuración, límites, ubicación y criterios del contrato.
+
+Mantenimiento
+
+Inspección, limpieza, verificación, repuesto y trazabilidad.
+
+14. Organización y distribución de la planta
+
+OTech no necesita una planta fabril pesada en la etapa inicial. Requiere un taller-laboratorio controlado, oficina de ingeniería y almacenamiento seguro. La distribución debe impedir que material sin verificar se mezcle con equipos aceptados.
+
+Zona
+
+Función
+
+Recepción y cuarentena
+
+Componentes pendientes de inspección y registro.
+
+Almacén ESD
+
+Inventario identificado, control de humedad y mínimos/máximos.
+
+Ensamble
+
+Mesas ESD, soldadura, herramientas y procedimientos visibles.
+
+Pruebas y burn-in
+
+Energía protegida, conectividad, extracción y monitoreo continuo.
+
+Calibración/verificación
+
+Área estable o preparación de equipos para co-ubicación externa.
+
+Producto terminado
+
+Equipos aprobados, embalados y asociados a actas.
+
+Soporte y reparación
+
+Diagnóstico separado para evitar contaminación de inventario.
+
+Ingeniería y operaciones
+
+Desarrollo, documentación, mesa de ayuda y planificación de campo.
+
+Flujo operativo
+
+Diagnosticar el sitio, contaminantes relevantes, cobertura, energía, conectividad y expectativas de uso.
+
+Diseñar la red, seleccionar sensores y definir criterios de datos, instalación y aceptación.
+
+Comprar, recibir, ensamblar, serializar y probar cada unidad.
+
+Co-ubicar o verificar, documentar configuración y preparar la plataforma.
+
+Instalar, comisionar, capacitar y firmar acta de aceptación.
+
+Monitorear la flota, atender alertas, mantener y emitir informes.
+
+Revisar resultados con el cliente y ajustar la red o el plan de gestión.
+
+Servicios y niveles de atención
+
+Modalidad
+
+Cobertura
+
+Resultado
+
+Piloto
+
+3-10 nodos, 8-12 semanas
+
+Informe de desempeño y recomendación de escalamiento.
+
+Operación estándar
+
+Monitoreo remoto, mantenimiento programado y soporte en horario acordado.
+
+Disponibilidad y tiempos definidos en contrato.
+
+Operación crítica
+
+Redundancia, guardias, repuestos y atención prioritaria.
+
+Solo después de demostrar capacidad operativa.
+
+15. Cronograma de actividades
+
+Se propone una puesta en marcha de doce meses. Los hitos de calidad y mercado deben cumplirse antes de aumentar inventario o comprometer despliegues amplios.
+
+Mes
+
+Actividad
+
+Entregable
+
+Responsable
+
+1
+
+Definición societaria, marca y alcance
+
+Estatutos borrador, roles, marca en estudio y matriz de licencias
+
+Gerencia/Legal
+
+1-2
+
+Descubrimiento con clientes
+
+15 entrevistas y dos casos de uso priorizados
+
+Comercial/Producto
+
+2-3
+
+Arquitectura y prototipo alfa
+
+Nodo funcional, ingesta, tablero básico y BOM
+
+Tecnología
+
+3-4
+
+Diseño industrial inicial
+
+Gabinete, energía, comunicaciones y plan de pruebas
+
+Hardware/Operaciones
+
+4-5
+
+MVP de plataforma
+
+Usuarios, mapa, gráficas, alertas, activos y exportación
+
+Software
+
+5-6
+
+Pruebas y co-ubicación
+
+Informe de desempeño, fallas y ajustes
+
+Calidad
+
+6-8
+
+Piloto 1
+
+3-5 nodos en entorno controlado; criterios de éxito medidos
+
+Operaciones/Cliente
+
+8-9
+
+Correcciones y seguridad
+
+Versión beta, auditoría básica y documentación
+
+Tecnología
+
+9-11
+
+Piloto 2 institucional/industrial
+
+5-10 nodos, soporte y reporte ejecutivo
+
+Equipo completo
+
+11-12
+
+Preparación comercial
+
+Ficha técnica, SLA, costos, contratos, caso de éxito y plan de ventas
+
+Gerencia
+
+Indicadores de avance
+
+Dimensión
+
+Indicadores sugeridos
+
+Producto
+
+Porcentaje de nodos que completan burn-in; autonomía; pérdida de datos; tasa de fallas.
+
+Datos
+
+Cobertura temporal, latencia, registros inválidos, deriva y concordancia en co-ubicación.
+
+Servicio
+
+Tiempo de respuesta, resolución, disponibilidad y cumplimiento de mantenimiento.
+
+Mercado
+
+Entrevistas, pilotos contratados, tasa de conversión, ciclo de venta e ingreso recurrente.
+
+Finanzas
+
+Margen por proyecto, costo de garantía, capital de trabajo y meses de caja.
+
+Modelo económico preliminar
+
+Sin cotizaciones no es responsable fijar precios definitivos. Cada propuesta debe calcularse con la siguiente estructura y registrar supuestos de tasa de cambio, impuestos, desplazamientos y garantías.
+
+Componente
+
+Fórmula conceptual
+
+Implementación
+
+Diseño + equipos + ensamble + pruebas + instalación + capacitación + gestión de proyecto.
+
+Suscripción anual
+
+Nodos activos + usuarios + almacenamiento + alertas + API + soporte + copias de seguridad.
+
+Operación y mantenimiento
+
+Visitas + repuestos + calibración/verificación + conectividad + informes.
+
+Reserva de riesgo
+
+Garantías + tasa de cambio + obsolescencia + contingencias de campo.
+
+Margen
+
+Debe cubrir ventas, administración, investigación, capital de trabajo y utilidad.
+
+16. Consecución de mano de obra y materias primas
+
+Equipo humano mínimo
+
+Rol
+
+Responsabilidad
+
+Cantidad inicial
+
+Gerente/product owner
+
+Negocio, contratos, prioridades y relación institucional.
+
+1
+
+Ingeniero de firmware/IoT
+
+Dispositivos, conectividad, diagnósticos y actualizaciones.
+
+1
+
+Desarrollador backend/cloud
+
+Ingesta, datos, API, seguridad y observabilidad.
+
+1
+
+Desarrollador frontend/UX
+
+Mapas, tableros, accesibilidad y reportes.
+
+1
+
+Ingeniero ambiental/calidad de aire
+
+Casos de uso, QA/QC, interpretación y reportes.
+
+1
+
+Técnico electrónico de campo
+
+Ensamble, instalación, mantenimiento e inventario.
+
+1-2
+
+Comercial sector público/industrial
+
+Prospección, propuestas, licitaciones y alianzas.
+
+1
+
+Contable, jurídico y SST
+
+Servicios especializados recurrentes.
+
+Tercerizado
+
+Materias primas y abastecimiento
+
+Placas de control, sensores, módulos de comunicación, memorias y módulos de tiempo.
+
+Fuentes, reguladores, baterías, protecciones, paneles solares y accesorios cuando aplique.
+
+Gabinetes, soportes, prensaestopas, filtros, conectores, cableado y fijaciones.
+
+Etiquetas serializadas, empaques, sellos de garantía y documentación.
+
+Servicios de nube, conectividad, mapas, dominios, certificados y observabilidad.
+
+Política de compras
+
+Aprobar al menos dos proveedores para componentes críticos cuando el volumen lo permita.
+
+Registrar lote, proveedor, fecha, versión y equipo en el que se instaló cada sensor.
+
+No sustituir componentes por equivalentes sin repetir validación técnica.
+
+Calcular inventario de seguridad según tiempo de importación y compromisos de soporte.
+
+Incluir costo de garantía, reposición y obsolescencia en cada cotización.
+
+Riesgos empresariales y mitigación
+
+Riesgo
+
+Prob.
+
+Impacto
+
+Mitigación
+
+Datos inexactos o mal interpretados
+
+Alta
+
+Alta
+
+Co-ubicación, QA/QC, banderas, límites contractuales y revisión ambiental.
+
+Falla masiva de un lote
+
+Media
+
+Alta
+
+Homologación, burn-in, trazabilidad, proveedor alterno y reserva de garantía.
+
+Ciberincidente
+
+Media
+
+Alta
+
+Identidad por dispositivo, TLS, MFA, RBAC, parches, copias y plan de respuesta.
+
+Dependencia de importaciones
+
+Alta
+
+Media
+
+Inventario, doble fuente, modularidad y cláusulas de tasa de cambio.
+
+Incumplimiento de GPL/marca
+
+Media
+
+Alta
+
+Inventario de software, avisos, código fuente aplicable y revisión jurídica.
+
+Venta pública lenta
+
+Alta
+
+Media
+
+Mezcla B2G/B2B, pilotos, caja prudente y alianzas con integradores.
+
+Promesa regulatoria indebida
+
+Media
+
+Alta
+
+Clasificación de uso, revisión técnica y aprobación expresa de comunicaciones.
+
+17. Sostenibilidad e impacto
+
+El impacto de OTech no debe medirse por el número de sensores instalados, sino por la calidad del dato, las decisiones tomadas y la reducción de exposición o emisiones que el cliente pueda demostrar.
+
+Resultado
+
+Indicador
+
+Cobertura
+
+Zonas observadas, población o áreas operativas atendidas.
+
+Calidad
+
+Cobertura temporal, trazabilidad, estabilidad y mantenimiento cumplido.
+
+Decisión
+
+Alertas atendidas, medidas activadas y tiempos de respuesta.
+
+Ambiental
+
+Cambios antes/después con metodología y factores externos documentados.
+
+Circularidad
+
+Porcentaje de equipos reparados, módulos reutilizados y RAEE gestionados.
+
+Capacidades
+
+Funcionarios, operadores y comunidades capacitados.
+
+18. Criterios para aceptar un proyecto
+
+El cliente define qué decisión tomará con los datos y acepta el alcance indicativo o regulatorio aplicable.
+
+Las variables solicitadas pueden medirse con tecnología disponible y validable en las condiciones del sitio.
+
+Existe presupuesto para instalación, conectividad, mantenimiento y reposición, no solo para comprar equipos.
+
+OTech puede cumplir seguridad, acceso al sitio, soporte, protección de datos y tiempos contractuales.
+
+Los criterios de éxito, aceptación, propiedad de datos, publicación y limitaciones quedan por escrito.
+
+CONCLUSIONES
+
+OTech tiene una oportunidad clara si evita competir como ensamblador de bajo costo y se posiciona como integrador y operador de información ambiental. El producto vendible no es un sensor aislado: es la confianza operacional que surge de una red diseñada, probada, mantenida y explicada correctamente.
+
+La base abierta de CanAirIO reduce la barrera de experimentación y aporta aprendizaje sobre estaciones ESP32, sensores y publicación de datos. Sin embargo, el salto al mercado institucional exige diseño industrial, seguridad, trazabilidad, calidad de datos, soporte, licenciamiento y límites de uso explícitos. Esos elementos conforman el verdadero diferenciador de OTech.
+
+La estrategia recomendada es validar primero un caso de uso concreto mediante dos pilotos, documentar desempeño y costos, y solo entonces escalar hacia alcaldías, gobernaciones, autoridades ambientales e industrias. La credibilidad técnica debe crecer al mismo ritmo que la capacidad comercial.
+
+Decisión recomendada. Avanzar con un MVP de PM2.5/PM10, temperatura y humedad, conectividad resiliente y plataforma de gestión; incorporar CO2 o gases específicos únicamente cuando el caso de uso lo justifique y exista un plan de validación.
+
+BIBLIOGRAFÍA Y FUENTES DE CONSULTA
+
+1. CanAirIO. “Getting started with CanAirIO”. Documentación oficial. Consultado en agosto de 2026. Fuente en línea
+
+2. CanAirIO. “CanAirIO Web Installer”. Consultado en agosto de 2026. Fuente en línea
+
+3. kike-canaries. “canairio_firmware”. Repositorio oficial de firmware y documentación técnica. Fuente en línea
+
+4. kike-canaries. “canairio-services - LICENSE”. GNU General Public License. Fuente en línea
+
+5. Free Software Foundation. “GNU General Public License v3.0”. Fuente en línea
+
+6. Ministerio de Ambiente y Desarrollo Sostenible. “Contaminación atmosférica” y Resolución 2254 de 2017. Fuente en línea
+
+7. IDEAM - SISAIRE. “Documentos: Protocolo para el monitoreo y seguimiento de la calidad del aire”. Fuente en línea
+
+8. IDEAM - SISAIRE. “Validación e interpretación de resultados”. Fuente en línea
+
+9. Cámara de Comercio de Bogotá. “Constitución virtual de una S.A.S.”. Fuente en línea
+
+10. Cámara de Comercio de Bogotá. “Documentos para constitución de tu empresa”. Fuente en línea
+
+11. DIAN. “Inscripción y actualización del RUT”. Fuente en línea
+
+Campos pendientes antes de entregar o constituir
+
+Confirmar nombres completos de todos los integrantes y su función en el proyecto.
+
+Definir domicilio, dirección, correo, teléfono y datos societarios.
+
+Consultar homonimia y marca OTech; ajustar razón social si existe conflicto.
+
+Definir capital autorizado, suscrito y pagado, participación accionaria y representante legal.
+
+Cotizar componentes, nube, conectividad, calibración, seguros, importación y garantías.
+
+Validar licencias de todos los repositorios y componentes utilizados, no solo del firmware principal.
+
+Ejecutar pilotos y documentar precisión, repetibilidad, deriva, disponibilidad y costos reales.
+
+Documento preparado para fines académicos. No constituye oferta comercial, certificación metrológica ni asesoría jurídica.
