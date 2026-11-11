@@ -991,6 +991,291 @@ function buildPlant3D() {
     addCollisionBox(-186, -184, -135, 205, 0, 15, "FenceWest");
     addCollisionBox(184, 186, -135, 205, 0, 15, "FenceEast");
 
+    
+    // =========================================================================
+    // 1. ZONA TÉCNICA: TANQUES DE AGUA Y PLANTA DE TRATAMIENTO DE AGUAS (PTAR)
+    // =========================================================================
+    const ptarGroup = new THREE.Group();
+    ptarGroup.name = "WaterTreatmentPlant";
+
+    // Losa de Hormigón Armado con Dique de Retención (Bund Wall anti-derrames)
+    const ptarSlabMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.8 });
+    const ptarSlab = new THREE.Mesh(new THREE.BoxGeometry(46, 1.2, 58), ptarSlabMat);
+    ptarSlab.position.set(145, -0.6, -20);
+    ptarSlab.receiveShadow = true;
+    ptarGroup.add(ptarSlab);
+
+    // Muros perimetrales del dique de contención (1.8m de altura)
+    const bundWallMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.6 }); // Pintura amarilla de seguridad epóxica
+    const bundNorth = new THREE.Mesh(new THREE.BoxGeometry(46, 1.8, 1.2), bundWallMat);
+    bundNorth.position.set(145, 0.9, -49);
+    const bundSouth = new THREE.Mesh(new THREE.BoxGeometry(46, 1.8, 1.2), bundWallMat);
+    bundSouth.position.set(145, 0.9, 9);
+    const bundEast = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 58), bundWallMat);
+    bundEast.position.set(168, 0.9, -20);
+    const bundWest = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.8, 58), bundWallMat);
+    bundWest.position.set(122, 0.9, -20);
+    ptarGroup.add(bundNorth, bundSouth, bundEast, bundWest);
+    addCollisionBox(121, 169, -50, 10, 0, 12, "PTAR_Dike");
+
+    // TANQUE 1: Tanque de Reserva de Agua Potable y Red Contra Incendios (14m diametro, 18m altura)
+    const tank1Mat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, metalness: 0.5, roughness: 0.3 }); // Acero vitrificado azul
+    const tank1 = new THREE.Mesh(new THREE.CylinderGeometry(7.0, 7.0, 18, 32), tank1Mat);
+    tank1.position.set(134, 9.0, -36);
+    tank1.castShadow = true;
+    tank1.receiveShadow = true;
+    const dome1 = new THREE.Mesh(new THREE.SphereGeometry(7.05, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), tank1Mat);
+    dome1.position.set(134, 18.0, -36);
+    const ladderMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.8 }); // Amarillo seguridad
+    const ladder = new THREE.Mesh(new THREE.BoxGeometry(1.2, 18, 0.6), ladderMat);
+    ladder.position.set(141.4, 9.0, -36);
+    const gauge = new THREE.Mesh(new THREE.BoxGeometry(0.3, 15, 0.3), new THREE.MeshBasicMaterial({ color: 0x38bdf8 }));
+    gauge.position.set(127, 9.0, -36);
+    ptarGroup.add(tank1, dome1, ladder, gauge);
+
+    // TANQUE 2: Tanque Clarificador / Decantador de Aguas Residuales Industriales (12m diametro, 15m altura)
+    const tank2Mat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.6, roughness: 0.4 }); // Acero gris industrial
+    const tank2 = new THREE.Mesh(new THREE.CylinderGeometry(6.0, 6.0, 15, 32), tank2Mat);
+    tank2.position.set(156, 7.5, -36);
+    tank2.castShadow = true;
+    const dome2 = new THREE.Mesh(new THREE.CylinderGeometry(6.2, 6.2, 1.0, 32), tank2Mat);
+    dome2.position.set(156, 15.5, -36);
+    const railMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.7 });
+    const railing = new THREE.Mesh(new THREE.TorusGeometry(6.1, 0.15, 8, 32), railMat);
+    railing.rotation.x = Math.PI / 2;
+    railing.position.set(156, 16.5, -36);
+    ptarGroup.add(tank2, dome2, railing);
+
+    // TANQUE 3: Tanque Reactor Biológico / Ecualizador PTAR (10m diametro, 13m altura)
+    const tank3Mat = new THREE.MeshStandardMaterial({ color: 0x0f766e, metalness: 0.5, roughness: 0.35 }); // Cian oscuro OTech
+    const tank3 = new THREE.Mesh(new THREE.CylinderGeometry(5.0, 5.0, 13, 32), tank3Mat);
+    tank3.position.set(145, 6.5, -12);
+    tank3.castShadow = true;
+    const dome3 = new THREE.Mesh(new THREE.SphereGeometry(5.05, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), tank3Mat);
+    dome3.position.set(145, 13.0, -12);
+    ptarGroup.add(tank3, dome3);
+
+    // Red de Tuberías Aéreas Industriales Interconectadas (Manifold / Pipe Rack)
+    const pipeBlueMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.7, roughness: 0.2 });
+    const pipeGreenMat = new THREE.MeshStandardMaterial({ color: 0x10b981, metalness: 0.7, roughness: 0.2 });
+    const pipeSteelMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.2 });
+
+    const p1 = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 22, 16), pipeBlueMat);
+    p1.rotation.z = Math.PI / 2;
+    p1.position.set(145, 16, -36);
+    const p2 = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 24, 16), pipeGreenMat);
+    p2.rotation.x = Math.PI / 2;
+    p2.position.set(145, 12, -24);
+    const pFactory = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 24, 16), pipeSteelMat);
+    pFactory.rotation.z = Math.PI / 2;
+    pFactory.position.set(111, 14, -20);
+
+    for (let px of [105, 118]) {
+      const gPost = new THREE.Mesh(new THREE.BoxGeometry(0.8, 14, 0.8), ladderMat);
+      gPost.position.set(px, 7, -20);
+      ptarGroup.add(gPost);
+    }
+    ptarGroup.add(p1, p2, pFactory);
+
+    // Caseta Técnica de Bombas de Recirculación y Filtros
+    const pumpHouse = new THREE.Mesh(new THREE.BoxGeometry(10, 5, 8), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 }));
+    pumpHouse.position.set(134, 2.5, 2);
+    for (let bi = 0; bi < 2; bi++) {
+      const bMotor = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 2.5, 16), pipeBlueMat);
+      bMotor.rotation.z = Math.PI / 2;
+      bMotor.position.set(143 + bi * 4, 1.2, 2);
+      const bVolute = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.4, 0.8, 16), pipeSteelMat);
+      bVolute.position.set(141.5 + bi * 4, 1.2, 2);
+      ptarGroup.add(bMotor, bVolute);
+    }
+    const ptarSign = new THREE.Mesh(new THREE.BoxGeometry(16, 2.5, 0.4), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+    ptarSign.position.set(145, 8.5, 9.2);
+    const ptarSignBorder = new THREE.Mesh(new THREE.BoxGeometry(16.4, 2.9, 0.3), new THREE.MeshBasicMaterial({ color: 0x10b981 }));
+    ptarSignBorder.position.set(145, 8.5, 9.1);
+    ptarGroup.add(pumpHouse, ptarSign, ptarSignBorder);
+
+    outdoor.add(ptarGroup);
+
+    // =========================================================================
+    // 2. CANALES DE RECOLECCIÓN DE AGUAS RESIDUALES Y PLUVIALES (DRAINAGE TRENCHES)
+    // =========================================================================
+    const drainageGroup = new THREE.Group();
+    drainageGroup.name = "IndustrialDrainageSystem";
+
+    const trenchBaseMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.95 });
+    const gratingMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.85, roughness: 0.25 });
+
+    // Canal Longitudinal Este (X = 103)
+    const trenchEastBase = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.4, 170), trenchBaseMat);
+    trenchEastBase.position.set(103, -0.65, 0);
+    const trenchEastGrate = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.2, 170), gratingMat);
+    trenchEastGrate.position.set(103, -0.45, 0);
+    drainageGroup.add(trenchEastBase, trenchEastGrate);
+
+    // Canal Longitudinal Oeste (X = -103)
+    const trenchWestBase = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.4, 170), trenchBaseMat);
+    trenchWestBase.position.set(-103, -0.65, 0);
+    const trenchWestGrate = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.2, 170), gratingMat);
+    trenchWestGrate.position.set(-103, -0.45, 0);
+    drainageGroup.add(trenchWestBase, trenchWestGrate);
+
+    // Canal Frontal Conector (borde norte del patio de maniobras, Z = 99)
+    const trenchFrontBase = new THREE.Mesh(new THREE.BoxGeometry(180, 0.4, 2.2), trenchBaseMat);
+    trenchFrontBase.position.set(0, -0.65, 99);
+    const trenchFrontGrate = new THREE.Mesh(new THREE.BoxGeometry(180, 0.2, 1.8), gratingMat);
+    trenchFrontGrate.position.set(0, -0.45, 99);
+    drainageGroup.add(trenchFrontBase, trenchFrontGrate);
+
+    // Canal conector hacia la PTAR (X: 104 a 122, Z: -20)
+    const trenchToPTAR = new THREE.Mesh(new THREE.BoxGeometry(18, 0.2, 2.2), gratingMat);
+    trenchToPTAR.position.set(113, -0.45, -20);
+    drainageGroup.add(trenchToPTAR);
+
+    // Arquetas / Pozos de Registro con Tapa Circular de Hierro Fundido
+    const manholeRingMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.9, roughness: 0.3 });
+    const manholePositions = [
+      { x: 103, z: -80 }, { x: 103, z: -20 }, { x: 103, z: 40 }, { x: 103, z: 99 },
+      { x: -103, z: -80 }, { x: -103, z: 0 }, { x: -103, z: 99 },
+      { x: 0, z: 99 }, { x: 122, z: -20 }
+    ];
+    manholePositions.forEach(m => {
+      const box = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.3, 3.2), trenchBaseMat);
+      box.position.set(m.x, -0.55, m.z);
+      const cover = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.32, 16), manholeRingMat);
+      cover.position.set(m.x, -0.45, m.z);
+      drainageGroup.add(box, cover);
+    });
+
+    // Bajantes Pluviales Verticales de la Cubierta (Acero Galvanizado)
+    const downpipeMat = new THREE.MeshStandardMaterial({ color: 0xcbd5e1, metalness: 0.8, roughness: 0.2 });
+    const downpipeCoords = [
+      { x: 101.5, z: -80 }, { x: 101.5, z: -20 }, { x: 101.5, z: 40 },
+      { x: -101.5, z: -80 }, { x: -101.5, z: 0 }, { x: -101.5, z: 60 }
+    ];
+    downpipeCoords.forEach(dp => {
+      const pipe = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 28, 12), downpipeMat);
+      pipe.position.set(dp.x, 14, dp.z);
+      const shoe = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.55, 2.5, 12), downpipeMat);
+      shoe.rotation.x = Math.PI / 4;
+      shoe.position.set(dp.x + (dp.x > 0 ? 0.6 : -0.6), 1.0, dp.z);
+      drainageGroup.add(pipe, shoe);
+    });
+
+    outdoor.add(drainageGroup);
+
+    // =========================================================================
+    // 3. SEGUNDO SECTOR DE PARQUEADEROS (ESTE) & ÁREA DE BICIS Y MOTOS
+    // =========================================================================
+    const eastParkingMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+    const eastParkingSlab = new THREE.Mesh(new THREE.BoxGeometry(75, 0.2, 42), eastParkingMat);
+    eastParkingSlab.position.set(122, -0.7, 125);
+    outdoor.add(eastParkingSlab);
+
+    // 9 Bahías de Parqueo Delimitadas en el sector Este
+    for (let pk = 0; pk < 9; pk++) {
+      const pX = 88 + pk * 8;
+      const pLine = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.25, 16), whitePaintMat);
+      pLine.position.set(pX, -0.55, 125);
+      const wheelStop = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.6, 0.8), curbMat);
+      wheelStop.position.set(pX + 4, -0.3, 118);
+      outdoor.add(pLine, wheelStop);
+    }
+
+    // Bahía Accesible para Personas con Movilidad Reducida (PMR) en Azul
+    const pmrBlueMat = new THREE.MeshBasicMaterial({ color: 0x2563eb });
+    const pmrBay = new THREE.Mesh(new THREE.BoxGeometry(7.6, 0.22, 15.5), pmrBlueMat);
+    pmrBay.position.set(92, -0.58, 125);
+    outdoor.add(pmrBay);
+
+    // 4 Nuevos Vehículos Estilizados en el Parqueadero Este
+    createCar(100, 126, 0xdc2626, false); // Sedán Deportivo Rojo
+    createCar(108, 126, 0x0284c7, false); // SUV Azul Eléctrico
+    createCar(124, 126, 0xf1f5f9, false); // Sedán Blanco Perla
+    createCar(140, 126, 0x18181b, false); // Sedán Ejecutivo Negro
+
+    // Zona Techada de Motocicletas y Bicicletas para Empleados
+    const bikeShelter = new THREE.Group();
+    const shelterRoof = new THREE.Mesh(new THREE.BoxGeometry(18, 0.4, 8), new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.8, roughness: 0.2, transparent: true, opacity: 0.85 }));
+    shelterRoof.position.set(148, 6.5, 125);
+    for (let cx of [140, 156]) {
+      for (let cz of [121.5, 128.5]) {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 6.5, 8), curbMat);
+        post.position.set(cx, 3.25, cz);
+        bikeShelter.add(post);
+      }
+    }
+    const bikeRack = new THREE.Mesh(new THREE.BoxGeometry(14, 0.8, 1.2), new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9 }));
+    bikeRack.position.set(148, 0.5, 125);
+    bikeShelter.add(shelterRoof, bikeRack);
+    outdoor.add(bikeShelter);
+
+    // 2 Farolas LED Solares adicionales en el Parqueadero Este
+    [100, 140].forEach(fx => {
+      const pole = new THREE.Group();
+      const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 22, 12), curbMat);
+      mast.position.set(0, 11, 0);
+      const lamp = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.4, 2.5), new THREE.MeshBasicMaterial({ color: 0xfffbeb }));
+      lamp.position.set(0, 21.5, 1.8);
+      pole.add(mast, lamp);
+      pole.position.set(fx, 0, 143);
+      outdoor.add(pole);
+    });
+
+    // =========================================================================
+    // 4. ZONAS VERDES AMPLIADAS, PAISAJISMO Y SENDEROS PEATONALES
+    // =========================================================================
+    const lawnMatLush = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.85 });
+    // Franja Verde Norte (detrás del edificio industrial: Z: -130 a -102, X: -160 a 160)
+    const lawnNorth = new THREE.Mesh(new THREE.BoxGeometry(320, 0.3, 26), lawnMatLush);
+    lawnNorth.position.set(0, -0.65, -116);
+    outdoor.add(lawnNorth);
+
+    // Senderos Peatonales Adoquinados
+    const walkwayMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.7 });
+    const pathWest = new THREE.Mesh(new THREE.BoxGeometry(6, 0.25, 75), walkwayMat);
+    pathWest.position.set(-68, -0.55, 138);
+    const pathEast = new THREE.Mesh(new THREE.BoxGeometry(6, 0.25, 75), walkwayMat);
+    pathEast.position.set(68, -0.55, 138);
+    const frontWalkway = new THREE.Mesh(new THREE.BoxGeometry(204, 0.3, 6), walkwayMat);
+    frontWalkway.position.set(0, -0.55, 102);
+    outdoor.add(pathWest, pathEast, frontWalkway);
+
+    // Hileras de Setos Arbustivos Bajos Decorativos
+    const hedgeMat = new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.9 });
+    for (let hx = -64; hx <= -20; hx += 8) {
+      const hedge = new THREE.Mesh(new THREE.BoxGeometry(7, 1.8, 2.5), hedgeMat);
+      hedge.position.set(hx, 0.9, 106);
+      outdoor.add(hedge);
+    }
+    for (let hx = 20; hx <= 64; hx += 8) {
+      const hedge = new THREE.Mesh(new THREE.BoxGeometry(7, 1.8, 2.5), hedgeMat);
+      hedge.position.set(hx, 0.9, 106);
+      outdoor.add(hedge);
+    }
+
+    // Plaza de Descanso Ajardinada con Bancos Exteriores para Empleados
+    const plaza = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 0.3, 24), walkwayMat);
+    plaza.position.set(-70, -0.55, 108);
+    outdoor.add(plaza);
+
+    const benchWoodMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.6 });
+    for (let bi = 0; bi < 3; bi++) {
+      const bAngle = (bi * Math.PI * 2) / 3;
+      const bench = new THREE.Mesh(new THREE.BoxGeometry(4.5, 0.6, 1.5), benchWoodMat);
+      bench.position.set(-70 + Math.cos(bAngle) * 5.2, 0.6, 108 + Math.sin(bAngle) * 5.2);
+      bench.rotation.y = -bAngle;
+      outdoor.add(bench);
+    }
+
+    // Más Árboles Frondosos en las Zonas Verdes Norte, Este y Parqueadero
+    for (let ax = -150; ax <= 150; ax += 30) {
+      createTree(ax, -118);
+    }
+    for (let az = 40; az <= 90; az += 25) {
+      createTree(170, az);
+      createTree(-170, az);
+    }
+
     window.plantOutdoorGroup.add(outdoor);
   }
 
