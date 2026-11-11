@@ -1516,8 +1516,11 @@ function buildPlant3D() {
   const canopyMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.8 });
   const canopy = new THREE.Mesh(new THREE.BoxGeometry(38, 1.4, 22), canopyMat);
   canopy.position.set(0, 24, 109);
-  const facadeSign = new THREE.Mesh(new THREE.BoxGeometry(24, 3.5, 0.6), new THREE.MeshStandardMaterial({ color: 0x0284c7, emissive: 0x0ea5e9, emissiveIntensity: 0.8 }));
-  facadeSign.position.set(0, 26.5, 118);
+
+  // Rótulo Monumental Iluminado con Nombre Corporativo en la Marquesina del Piso 1
+  const p1SignTex = createSignBadgeTexture("OTech AirNet S.A.S.", "PLANTA INDUSTRIAL & CENTRO LOGÍSTICO", "#0284c7");
+  const facadeSign = createSignPanel(28, 4.4, p1SignTex, 1);
+  facadeSign.position.set(0, 26.8, 119.8);
 
   window.plantFloor1Group.add(
     wallP1Back, wallP1West, wallP1East,
@@ -4677,48 +4680,52 @@ function createSignPanel(width, height, texture, facingZ = 1) {
 
 function createPTARBannerTexture() {
   const canvas = document.createElement('canvas');
-  canvas.width = 1024;
+  canvas.width = 1280;
   canvas.height = 256;
   const ctx = canvas.getContext('2d');
 
   // Fondo grafito oscuro
   ctx.fillStyle = '#090d16';
-  ctx.fillRect(0, 0, 1024, 256);
+  ctx.fillRect(0, 0, 1280, 256);
 
   // Franja superior verde esmeralda OTech
   ctx.fillStyle = '#10b981';
-  ctx.fillRect(0, 0, 1024, 24);
+  ctx.fillRect(0, 0, 1280, 24);
 
   // Marco perimetral cian
   ctx.strokeStyle = '#0284c7';
   ctx.lineWidth = 8;
-  ctx.strokeRect(4, 4, 1016, 248);
+  ctx.strokeRect(4, 4, 1272, 248);
 
   // Franja inferior de seguridad a rayas amarillas y negras
   const stripeW = 28;
-  for (let s = 0; s < 1024; s += stripeW * 2) {
+  for (let s = 0; s < 1280; s += stripeW * 2) {
     ctx.fillStyle = '#facc15';
     ctx.fillRect(s, 232, stripeW, 20);
     ctx.fillStyle = '#0f172a';
     ctx.fillRect(s + stripeW, 232, stripeW, 20);
   }
 
-  // Encabezado
+  // Encabezado institucional
   ctx.fillStyle = '#38bdf8';
-  ctx.font = 'bold 36px "JetBrains Mono", sans-serif';
-  ctx.fillText('OTech AirNet S.A.S. • SISTEMA DE GESTIÓN AMBIENTAL', 45, 78);
+  ctx.font = 'bold 30px "JetBrains Mono", Arial, sans-serif';
+  ctx.fillText('OTech AirNet S.A.S. • SISTEMA DE GESTIÓN AMBIENTAL', 45, 76);
 
   // Título principal de la PTAR
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 54px "JetBrains Mono", sans-serif';
-  ctx.fillText('PLANTA DE TRATAMIENTO DE AGUAS RESIDUALES (PTAR)', 45, 145);
+  ctx.font = 'bold 44px "JetBrains Mono", Arial, sans-serif';
+  ctx.fillText('PLANTA DE TRATAMIENTO DE AGUAS RESIDUALES (PTAR)', 45, 142);
 
-  // Subtítulo
+  // Subtítulo técnico
   ctx.fillStyle = '#2dd4bf';
-  ctx.font = 'bold 32px "JetBrains Mono", monospace';
-  ctx.fillText('RECIRCULACIÓN INDUSTRIAL, FILTRADO & RED CONTRA INCENDIOS', 45, 198);
+  ctx.font = 'bold 28px "JetBrains Mono", Arial, monospace';
+  ctx.fillText('RECIRCULACIÓN INDUSTRIAL • FILTRADO & RED CONTRA INCENDIOS', 45, 196);
 
   const texture = new THREE.CanvasTexture(canvas);
+  texture.generateMipmaps = true;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.needsUpdate = true;
   return texture;
 }
 
