@@ -824,35 +824,60 @@ function buildPlant3D() {
     createCar(-103, 126, 0xdc2626, false); // Crossover Rojo
     createCar(-95, 126, 0x0284c7, true);   // Van Soporte Técnico
 
-    // Garita de Vigilancia & Acceso Controlado (X: -120, Z: 172)
+    // Garita de Vigilancia & Acceso Controlado Orientada Hacia la Entrada (X: -64, Z: 150)
+    // El vigilante mira de frente al Sur (Z = 165, la calle principal de donde entran los carros)
     const boothGroup = new THREE.Group();
-    const boothBase = new THREE.Mesh(new THREE.BoxGeometry(12, 1.0, 10), curbMat);
+    const boothBase = new THREE.Mesh(new THREE.BoxGeometry(11, 1.0, 11), curbMat);
     boothBase.position.set(0, 0.5, 0);
-    const boothWalls = new THREE.Mesh(new THREE.BoxGeometry(11, 8.5, 9), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 }));
+    const boothWalls = new THREE.Mesh(new THREE.BoxGeometry(10, 8.5, 10), new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 }));
     boothWalls.position.set(0, 5.0, 0);
-    const boothGlass = new THREE.Mesh(new THREE.BoxGeometry(11.2, 4.0, 9.2), new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.5 }));
+    const boothGlass = new THREE.Mesh(new THREE.BoxGeometry(10.2, 4.0, 10.2), new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.55 }));
     boothGlass.position.set(0, 5.5, 0);
-    const boothRoof = new THREE.Mesh(new THREE.BoxGeometry(16, 0.8, 14), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
+    const boothRoof = new THREE.Mesh(new THREE.BoxGeometry(15, 0.8, 15), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
     boothRoof.position.set(0, 9.6, 0);
-    const guard = createHuman3D(0, 1.0, 0, 0, false, false, 'guard');
-    boothGroup.add(boothBase, boothWalls, boothGlass, boothRoof, guard);
-    boothGroup.position.set(-120, 0, 172);
-    outdoor.add(boothGroup);
-    addCollisionBox(-128, -112, 165, 179, 0, 15, "GuardHouse");
+    
+    // Letrero de la Garita de Control
+    const boothSignMat = new THREE.MeshStandardMaterial({ map: createSignBadgeTexture("CONTROL DE ACCESO", "SEGURIDAD Y VIGILANCIA OTECH", "#0284c7"), roughness: 0.4 });
+    const boothSign = new THREE.Mesh(new THREE.BoxGeometry(8.5, 2.0, 0.3), boothSignMat);
+    boothSign.position.set(0, 7.8, 5.2);
+    
+    // Guardia orientado hacia el Sur (mirando a los vehículos que llegan desde la calle exterior)
+    const guard = createHuman3D(0, 1.0, 1.5, 0, false, false, 'guard');
+    boothGroup.add(boothBase, boothWalls, boothGlass, boothRoof, boothSign, guard);
+    boothGroup.position.set(-64, 0, 150);
+    
+    boothGroup.userData = {
+      id: 'guardhouse',
+      name: "Garita de Vigilancia & Control de Acceso",
+      badge: "SEGURIDAD PERIMETRAL",
+      desc: "Punto de control de ingreso y salida vehicular con barrera electrónica y cámaras LPR.",
+      extra: "Oficial: Seguridad Privada • 24/7",
+      isInteractive: true
+    };
+    if (!window.fpsInteractiveTargets) window.fpsInteractiveTargets = [];
+    window.fpsInteractiveTargets.push(boothGroup);
 
-    // Pluma Vehicular Automatizada
+    outdoor.add(boothGroup);
+    addCollisionBox(-70, -58, 144, 156, 0, 15, "GuardHouse");
+
+    // Pluma / Barrera Vehicular Automatizada (Controla el carril de entrada de X: -58 a X: -42)
     const barrierGroup = new THREE.Group();
     const barrierPedestal = new THREE.Mesh(new THREE.BoxGeometry(2.0, 4.5, 2.0), new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.6 }));
     barrierPedestal.position.set(0, 2.25, 0);
-    const barrierArm = new THREE.Mesh(new THREE.BoxGeometry(18, 0.6, 0.3), new THREE.MeshStandardMaterial({ color: 0xef4444 }));
-    barrierArm.position.set(9.0, 4.0, 0);
-    for (let bStr = 2; bStr < 18; bStr += 3) {
+    const barrierArm = new THREE.Mesh(new THREE.BoxGeometry(15, 0.6, 0.3), new THREE.MeshStandardMaterial({ color: 0xef4444 }));
+    barrierArm.position.set(7.5, 4.0, 0);
+    for (let bStr = 2; bStr < 15; bStr += 2.5) {
       const bMesh = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.62, 0.32), new THREE.MeshBasicMaterial({ color: 0xffffff }));
       bMesh.position.set(bStr, 4.0, 0);
       barrierGroup.add(bMesh);
     }
-    barrierGroup.add(barrierPedestal, barrierArm);
-    barrierGroup.position.set(-112, 0, 172);
+    // Señal de STOP / ALTO en la barrera
+    const stopSignMat = new THREE.MeshBasicMaterial({ color: 0xdc2626 });
+    const stopSign = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.1, 8), stopSignMat);
+    stopSign.rotation.x = Math.PI / 2;
+    stopSign.position.set(7.5, 4.0, 0.2);
+    barrierGroup.add(barrierPedestal, barrierArm, stopSign);
+    barrierGroup.position.set(-58, 0, 150);
     outdoor.add(barrierGroup);
 
     // Tótem Monumental de Entrada OTech S.A.S.
@@ -1088,11 +1113,53 @@ function buildPlant3D() {
       bVolute.position.set(141.5 + bi * 4, 1.2, 2);
       ptarGroup.add(bMotor, bVolute);
     }
-    const ptarSign = new THREE.Mesh(new THREE.BoxGeometry(16, 2.5, 0.4), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
-    ptarSign.position.set(145, 8.5, 9.2);
-    const ptarSignBorder = new THREE.Mesh(new THREE.BoxGeometry(16.4, 2.9, 0.3), new THREE.MeshBasicMaterial({ color: 0x10b981 }));
-    ptarSignBorder.position.set(145, 8.5, 9.1);
-    ptarGroup.add(pumpHouse, ptarSign, ptarSignBorder);
+    // Cartel Monumental PTAR con Estructura de Acero Físico (No Flotante)
+    const ptarSignMat = new THREE.MeshStandardMaterial({
+      map: createPTARBannerTexture(),
+      roughness: 0.3,
+      metalness: 0.2
+    });
+    const ptarSignBoard = new THREE.Mesh(new THREE.BoxGeometry(26, 6.5, 0.6), ptarSignMat);
+    ptarSignBoard.position.set(145, 6.5, 9.4);
+    
+    // 2 Columnas de Acero IPN fijadas al concreto con zócalos
+    const postMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.85, roughness: 0.25 });
+    for (let px of [135, 155]) {
+      const postMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 8.5, 16), postMat);
+      postMesh.position.set(px, 3.5, 9.4);
+      const basePlate = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.4, 1.6), postMat);
+      basePlate.position.set(px, 0.2, 9.4);
+      ptarGroup.add(postMesh, basePlate);
+    }
+    ptarGroup.add(pumpHouse, ptarSignBoard);
+
+    // Rótulos Técnicos en cada Tanque Cilíndrico
+    const tk1LabelMat = new THREE.MeshStandardMaterial({ map: createTankLabelTexture("TK-01: AGUA POTABLE", "RESERVA CONTRA INCENDIOS 18.000L"), roughness: 0.4 });
+    const tk1Sign = new THREE.Mesh(new THREE.BoxGeometry(7.0, 1.8, 0.3), tk1LabelMat);
+    tk1Sign.position.set(134, 10, -28.8);
+    ptarGroup.add(tk1Sign);
+
+    const tk2LabelMat = new THREE.MeshStandardMaterial({ map: createTankLabelTexture("TK-02: CLARIFICADOR", "AGUAS RESIDUALES DE PROCESO"), roughness: 0.4 });
+    const tk2Sign = new THREE.Mesh(new THREE.BoxGeometry(7.0, 1.8, 0.3), tk2LabelMat);
+    tk2Sign.position.set(156, 10, -29.8);
+    ptarGroup.add(tk2Sign);
+
+    const tk3LabelMat = new THREE.MeshStandardMaterial({ map: createTankLabelTexture("TK-03: REACTOR BIOLÓGICO", "SISTEMA PTAR NEUTRALIZACIÓN"), roughness: 0.4 });
+    const tk3Sign = new THREE.Mesh(new THREE.BoxGeometry(6.5, 1.6, 0.3), tk3LabelMat);
+    tk3Sign.position.set(145, 8, -6.8);
+    ptarGroup.add(tk3Sign);
+
+    // Registrar en objetivos interactivos para el Raycaster de la Mira en FPS
+    ptarGroup.userData = {
+      id: 'ptar',
+      name: "Planta de Tratamiento de Aguas Residuales (PTAR) & Red de Extinción",
+      badge: "SISTEMA HIDRÁULICO & AMBIENTAL",
+      desc: "Tratamiento de efluentes industriales, decantación y recirculación con reserva de 18.000L para bomberos.",
+      extra: "Capacidad: 45.000L totales • Monitoreo pH/Turbidez en vivo",
+      isInteractive: true
+    };
+    if (!window.fpsInteractiveTargets) window.fpsInteractiveTargets = [];
+    window.fpsInteractiveTargets.push(ptarGroup);
 
     outdoor.add(ptarGroup);
 
@@ -1631,9 +1698,46 @@ function buildPlant3D() {
   wallP2West.position.set(-98, 16, 0);
   const wallP2East = new THREE.Mesh(new THREE.BoxGeometry(2.5, 32, 192), wallMat);
   wallP2East.position.set(98, 16, 0);
-  const windowP2Front = new THREE.Mesh(new THREE.BoxGeometry(196, 24, 1.0), glassFacadeP2Mat);
-  windowP2Front.position.set(0, 16, 96);
-  window.plantFloor2Group.add(wallP2Back, wallP2West, wallP2East, windowP2Front);
+  // Fachada Frontal Arquitectónica Completa del Piso 2 (Muro Cortina con Paneles y Ventanales)
+  window.wallP2FrontGroup = new THREE.Group();
+  window.wallP2FrontGroup.name = "P2FrontFacade";
+
+  // Muro antepecho y dintel en panel arquitectónico gris titanio
+  const wallFrontMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6, metalness: 0.2 });
+  const p2ParapetTop = new THREE.Mesh(new THREE.BoxGeometry(196, 5, 2.4), wallFrontMat);
+  p2ParapetTop.position.set(0, 29.5, 96);
+  const p2ParapetBtm = new THREE.Mesh(new THREE.BoxGeometry(196, 4, 2.4), wallFrontMat);
+  p2ParapetBtm.position.set(0, 2, 96);
+
+  // Muro cortina de vidrio templado corporativo
+  const p2GlassMat = new THREE.MeshPhysicalMaterial({
+    color: 0x0284c7,
+    transparent: true,
+    opacity: 0.65,
+    roughness: 0.1,
+    transmission: 0.7,
+    depthWrite: false,
+    reflectivity: 0.8
+  });
+  const p2Glass = new THREE.Mesh(new THREE.BoxGeometry(195, 22, 0.8), p2GlassMat);
+  p2Glass.position.set(0, 15, 96);
+
+  // Perfilería y montantes verticales de aluminio negro cada 16 metros
+  const mullionMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.9, roughness: 0.2 });
+  for (let mx = -96; mx <= 96; mx += 16) {
+    const mullion = new THREE.Mesh(new THREE.BoxGeometry(0.8, 24, 1.6), mullionMat);
+    mullion.position.set(mx, 15, 96);
+    window.wallP2FrontGroup.add(mullion);
+  }
+
+  // Barandilla exterior de terraza / balcón corporativo
+  const railP2 = new THREE.Mesh(new THREE.BoxGeometry(196, 1.2, 0.4), mullionMat);
+  railP2.position.set(0, 5, 97.5);
+  window.wallP2FrontGroup.add(p2ParapetTop, p2ParapetBtm, p2Glass, railP2);
+
+  // Por defecto encendida
+  window.plantFloor2Group.add(wallP2Back, wallP2West, wallP2East, window.wallP2FrontGroup);
+  state.showP2Facade = true;
 
   // -------------------------------------------------------------------------
   // 3. DIVISIONES ARQUITECTÓNICAS Y OFICINAS CORPORATIVAS EN PISO 2
@@ -1707,9 +1811,40 @@ function buildPlant3D() {
       dGroup.add(createOfficeWall(-dept.w / 2, 0, dept.l, true, false));
       dGroup.add(createOfficeWall(dept.w / 2, 0, dept.l, true, false));
 
-      const signBoard = new THREE.Mesh(new THREE.BoxGeometry(18, 2.5, 0.4), new THREE.MeshStandardMaterial({ color: 0x0f172a }));
-      signBoard.position.set(0, 11, -dept.l / 2);
-      dGroup.add(signBoard);
+      // Placa / Gafete de Señalización de Oficina 3D con Textura Nítida
+      const hexColorStr = '#' + dept.color.toString(16).padStart(6, '0');
+      const deptCode = dept.id.toUpperCase();
+      const badgeTex = createSignBadgeTexture(dept.name, "MÓDULO DEPARTAMENTAL • " + deptCode, hexColorStr);
+      const signMat = new THREE.MeshStandardMaterial({ map: badgeTex, roughness: 0.3, metalness: 0.2 });
+
+      // Placa Frontal (Visible desde el pasillo)
+      const signBoard = new THREE.Mesh(new THREE.BoxGeometry(22, 3.2, 0.5), signMat);
+      signBoard.position.set(0, 11.2, -dept.l / 2);
+
+      // Marco de Aluminio Negro y Soportes al Dintel
+      const frameMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.85, roughness: 0.3 });
+      const signFrame = new THREE.Mesh(new THREE.BoxGeometry(22.4, 3.6, 0.4), frameMat);
+      signFrame.position.set(0, 11.2, -dept.l / 2);
+      
+      // Varillas metálicas de suspensión
+      for (let vx of [-9, 9]) {
+        const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 2.0, 8), frameMat);
+        rod.position.set(vx, 13.5, -dept.l / 2);
+        dGroup.add(rod);
+      }
+      dGroup.add(signBoard, signFrame);
+
+      // Registrar datos detallados para el Raycaster de la Mira en Primera Persona
+      dGroup.userData = {
+        id: dept.id,
+        name: dept.name,
+        badge: "OFICINA CORPORATIVA PISO 2",
+        desc: "Área administrativa, gestión estratégica y dirección técnica del Ecosistema OTech.",
+        extra: "Responsable: " + dept.name.split('(')[0].trim() + " • OTech S.A.S.",
+        isInteractive: true
+      };
+      if (!window.fpsInteractiveTargets) window.fpsInteractiveTargets = [];
+      window.fpsInteractiveTargets.push(dGroup);
     }
 
     if (dept.id === 'ceo') {
@@ -2634,6 +2769,35 @@ function buildPlant3D() {
       }
     }
 
+    // Letrero Aéreo Industrial Suspendido sobre la Estación de Trabajo
+    const stData = plantStationData[cfg.id] || { desc: "Línea de Ensamble y Verificación OTech", specs: { "Operario Responsable": "Técnico de Planta" } };
+    const stBadgeTex = createSignBadgeTexture(cfg.name, "CELDA LEAN • " + cfg.id.toUpperCase(), "#0284c7", true);
+    const stSignMat = new THREE.MeshStandardMaterial({ map: stBadgeTex, roughness: 0.3, metalness: 0.3 });
+
+    const stSignBoard = new THREE.Mesh(new THREE.BoxGeometry(22, 3.5, 0.5), stSignMat);
+    stSignBoard.position.set(0, 24, 0);
+
+    // Tirantes de acero suspendidos de la cubierta
+    const hangerMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.9, roughness: 0.2 });
+    for (let hx of [-9, 9]) {
+      const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 8, 8), hangerMat);
+      rod.position.set(hx, 28, 0);
+      stGroup.add(rod);
+    }
+    stGroup.add(stSignBoard);
+
+    // Metadatos para el Raycaster de la Mira en Modo Primera Persona (FPS)
+    stGroup.userData = {
+      id: cfg.id,
+      name: cfg.name,
+      badge: "ESTACIÓN DE MANUFACTURA PISO 1",
+      desc: stData.desc || "Operaciones de ensamble, test metrológico y empaque.",
+      extra: (stData.specs && stData.specs["Operario Responsable"] ? "Responsable: " + stData.specs["Operario Responsable"] : "Línea OTech AirNet"),
+      isInteractive: true
+    };
+    if (!window.fpsInteractiveTargets) window.fpsInteractiveTargets = [];
+    window.fpsInteractiveTargets.push(stGroup);
+
     stGroup.position.set(cfg.x, 0, cfg.z);
     plantStationsMap[cfg.id] = stGroup;
     window.plantFloor1Group.add(stGroup);
@@ -3139,6 +3303,37 @@ function onCanvasClick(event) {
 }
 
 // UI Event Listeners
+
+// =========================================================================
+// CONTROL DE VISIBILIDAD DE LA PARED FRONTAL / FACHADA PISO 2
+// =========================================================================
+function toggleP2Facade(forceVisible) {
+  if (forceVisible !== undefined) {
+    state.showP2Facade = forceVisible;
+  } else {
+    state.showP2Facade = !state.showP2Facade;
+  }
+
+  if (window.wallP2FrontGroup) {
+    window.wallP2FrontGroup.visible = state.showP2Facade;
+  }
+
+  const btnTop = document.getElementById('btn-toggle-p2-facade');
+  const txtTop = document.getElementById('facade-p2-btn-text');
+  if (btnTop) {
+    btnTop.classList.toggle('active', state.showP2Facade);
+    if (txtTop) txtTop.innerText = state.showP2Facade ? 'Fachada P2: ON' : 'Fachada P2: OFF';
+  }
+
+  const btnFps = document.getElementById('btn-fps-facade');
+  const txtFps = document.getElementById('fps-facade-text');
+  if (btnFps) {
+    btnFps.classList.toggle('active', state.showP2Facade);
+    if (txtFps) txtFps.innerText = state.showP2Facade ? 'Fachada P2 ON' : 'Fachada P2 OFF';
+  }
+}
+window.toggleP2Facade = toggleP2Facade;
+
 function setupUIEvents() {
   // Sidebar Toggle Drawer Button (Pantalla Completa Limpia)
   const sidebarToggleBtn = document.getElementById('btn-toggle-sidebar');
@@ -3349,6 +3544,23 @@ function setupUIEvents() {
       if (window.plantRoofGroup) {
         window.plantRoofGroup.visible = state.showPlantRoof;
       }
+    });
+  }
+
+  // Alternar Pared Frontal / Fachada Piso 2 en Vista Orbital
+  const facadeToggleBtn = document.getElementById('btn-toggle-p2-facade');
+  if (facadeToggleBtn) {
+    facadeToggleBtn.addEventListener('click', () => {
+      toggleP2Facade();
+    });
+  }
+
+  // Alternar Pared Frontal / Fachada Piso 2 desde el HUD de Primera Persona
+  const fpsFacadeBtn = document.getElementById('btn-fps-facade');
+  if (fpsFacadeBtn) {
+    fpsFacadeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleP2Facade();
     });
   }
 
@@ -3784,6 +3996,42 @@ function animate() {
 
     camera.position.copy(state.fpsCameraPos);
     camera.rotation.set(state.fpsCameraPitch, state.fpsCameraYaw, 0, 'YXZ');
+
+    // Detección Interactiva de la Mira Central (Crosshair Raycast HUD)
+    if (window.fpsInteractiveTargets && window.fpsInteractiveTargets.length > 0) {
+      const forwardDir = new THREE.Vector3();
+      camera.getWorldDirection(forwardDir);
+      raycaster.set(camera.position, forwardDir);
+
+      const intersects = raycaster.intersectObjects(window.fpsInteractiveTargets, true);
+      const hudCard = document.getElementById('fps-target-card');
+
+      if (intersects.length > 0 && intersects[0].distance < 75) {
+        let hitObj = intersects[0].object;
+        while (hitObj.parent && !hitObj.userData.isInteractive) {
+          hitObj = hitObj.parent;
+        }
+
+        if (hitObj && hitObj.userData.isInteractive) {
+          const u = hitObj.userData;
+          const badgeEl = document.getElementById('fps-target-type');
+          const titleEl = document.getElementById('fps-target-title');
+          const descEl = document.getElementById('fps-target-desc');
+          const extraEl = document.getElementById('fps-target-extra');
+
+          if (badgeEl) badgeEl.innerText = u.badge || 'ÁREA INDUSTRIAL';
+          if (titleEl) titleEl.innerText = u.name || 'Instalación OTech';
+          if (descEl) descEl.innerText = u.desc || '';
+          if (extraEl) extraEl.innerText = u.extra || '';
+
+          if (hudCard) hudCard.classList.remove('hidden');
+        } else if (hudCard) {
+          hudCard.classList.add('hidden');
+        }
+      } else if (hudCard) {
+        hudCard.classList.add('hidden');
+      }
+    }
   } else {
     controls.update();
   }
@@ -4215,6 +4463,125 @@ function createBadgeTexture() {
 }
 
 // Lighting Setup with Dynamic Weather & Cinematic Studio Rim Light
+
+// =========================================================================
+// GENERADORES DE TEXTURAS CANVAS PARA SEÑALIZACIÓN 3D Y GAFETES
+// =========================================================================
+
+function createSignBadgeTexture(title, subtitle, colorHex, isWarning = false) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+
+  // Fondo degradado industrial oscuro
+  const grad = ctx.createLinearGradient(0, 0, 512, 128);
+  grad.addColorStop(0, '#090d16');
+  grad.addColorStop(1, '#111827');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 512, 128);
+
+  // Marco de color del departamento
+  ctx.strokeStyle = colorHex;
+  ctx.lineWidth = 6;
+  ctx.strokeRect(3, 3, 506, 122);
+
+  // Franja decorativa lateral
+  ctx.fillStyle = colorHex;
+  ctx.fillRect(6, 6, 14, 116);
+
+  // Franja de advertencia si aplica
+  if (isWarning) {
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(490, 6, 14, 116);
+  }
+
+  // Título principal
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 26px "JetBrains Mono", sans-serif';
+  ctx.fillText(title, 32, 52);
+
+  // Subtítulo técnico
+  ctx.fillStyle = colorHex;
+  ctx.font = 'bold 18px "JetBrains Mono", monospace';
+  ctx.fillText(subtitle, 32, 92);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
+function createPTARBannerTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1024;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  // Fondo grafito oscuro
+  ctx.fillStyle = '#090d16';
+  ctx.fillRect(0, 0, 1024, 256);
+
+  // Franja superior verde esmeralda OTech
+  ctx.fillStyle = '#10b981';
+  ctx.fillRect(0, 0, 1024, 24);
+
+  // Marco perimetral cian
+  ctx.strokeStyle = '#0284c7';
+  ctx.lineWidth = 8;
+  ctx.strokeRect(4, 4, 1016, 248);
+
+  // Franja inferior de seguridad a rayas amarillas y negras
+  const stripeW = 28;
+  for (let s = 0; s < 1024; s += stripeW * 2) {
+    ctx.fillStyle = '#facc15';
+    ctx.fillRect(s, 232, stripeW, 20);
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(s + stripeW, 232, stripeW, 20);
+  }
+
+  // Encabezado
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 36px "JetBrains Mono", sans-serif';
+  ctx.fillText('OTech AirNet S.A.S. • SISTEMA DE GESTIÓN AMBIENTAL', 45, 78);
+
+  // Título principal de la PTAR
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 54px "JetBrains Mono", sans-serif';
+  ctx.fillText('PLANTA DE TRATAMIENTO DE AGUAS RESIDUALES (PTAR)', 45, 145);
+
+  // Subtítulo
+  ctx.fillStyle = '#2dd4bf';
+  ctx.font = 'bold 32px "JetBrains Mono", monospace';
+  ctx.fillText('RECIRCULACIÓN INDUSTRIAL, FILTRADO & RED CONTRA INCENDIOS', 45, 198);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
+function createTankLabelTexture(labelCode, capacity) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#0f172a';
+  ctx.fillRect(0, 0, 512, 128);
+  ctx.strokeStyle = '#38bdf8';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(4, 4, 504, 120);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 32px "JetBrains Mono", sans-serif';
+  ctx.fillText(labelCode, 24, 55);
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 22px "JetBrains Mono", monospace';
+  ctx.fillText(capacity, 24, 95);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  return texture;
+}
+
+
 function setupLights() {
   ambientLight = new THREE.AmbientLight(0xddeeff, 0.65);
   scene.add(ambientLight);

@@ -96,6 +96,19 @@
         <div id="fps-hud" class="fps-hud hidden">
           <div class="fps-crosshair"></div>
 
+          <!-- Gafete Dinámico de Enfoque con la Mira (Crosshair Target HUD) -->
+          <div id="fps-target-card" class="fps-target-card hidden">
+            <div class="fps-target-badge">
+              <span class="fps-target-dot"></span>
+              <span id="fps-target-type">ESTACIÓN DE TRABAJO</span>
+            </div>
+            <h4 id="fps-target-title">Nombre de la Estación</h4>
+            <p id="fps-target-desc">Descripción técnica de las operaciones.</p>
+            <div class="fps-target-footer">
+              <span id="fps-target-extra">Responsable / Capacidad</span>
+            </div>
+          </div>
+
           <!-- Banner superior para reanudar cuando el cursor está liberado para cambiar opciones -->
           <div id="fps-resume-banner" class="fps-resume-banner hidden">
             <button id="btn-resume-fps" class="fps-resume-btn" title="Hacer clic para recuperar el control 360°">
@@ -135,6 +148,9 @@
               <input type="range" id="fps-sens-slider" min="0.0002" max="0.0018" step="0.0001" value="0.0005" title="Ajuste fino continuo">
               <button id="btn-fps-roof" class="fps-roof-btn active" title="Mostrar u ocultar cubierta / techo industrial (Tecla T)">
                 <i data-lucide="home"></i> <span id="fps-roof-text">Techo ON</span>
+              </button>
+              <button id="btn-fps-facade" class="fps-roof-btn active" title="Mostrar u ocultar pared frontal / fachada del Piso 2">
+                <i data-lucide="layout-grid"></i> <span id="fps-facade-text">Fachada P2 ON</span>
               </button>
             </div>
             <div class="fps-status-bar">
@@ -198,6 +214,9 @@
                 </button>
                 <button id="btn-toggle-roof" class="floor-btn" title="Alternar Cubierta / Techo Industrial Completo">
                   <i data-lucide="home"></i> <span id="roof-btn-text">Ver Techo</span>
+                </button>
+                <button id="btn-toggle-p2-facade" class="floor-btn active" title="Mostrar u Ocultar la Pared Frontal / Fachada del Piso 2">
+                  <i data-lucide="layout-grid"></i> <span id="facade-p2-btn-text">Fachada P2: ON</span>
                 </button>
               </div>
             </div>
