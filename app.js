@@ -32,8 +32,11 @@ const state = {
   showPlantRoof: false
 };
 
-// Scene, Camera, Renderer, Controls
+// Scene, Camera, Renderer, Controls & Postprocessing
 let scene, camera, renderer, controls;
+let composer, renderPass, bloomPass, fxaaPass;
+let pbrEnvMap = null;
+let texAsphalt = null, texConcrete = null, texCorrugated = null, texGrass = null;
 let modelRoot, hoodGroup, enclosureGroup, chassisGroup, stevensonGroup, bracketGroup, mastGroup;
 let plantRootGroup, plantStationsMap = {}, plantMovingUnits = [];
 let plantSkyDome = null;
@@ -679,15 +682,31 @@ function buildPlant3D() {
     const outdoor = new THREE.Group();
     outdoor.name = "plantOutdoorCampus";
 
-    // Suelo Exterior General (380m x 380m) - Nivelado arquitectónico PBR
-    const groundMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.92, metalness: 0.08 });
+    // Inicializar Texturas Procedurales PBR de Alta Resolución
+    if (!texAsphalt) texAsphalt = createAsphaltPBRTexture();
+    if (!texConcrete) texConcrete = createConcretePBRTexture();
+    if (!texCorrugated) texCorrugated = createCorrugatedPBRTexture();
+    if (!texGrass) texGrass = createLawnPBRTexture();
+
+    // Suelo Exterior General (380m x 380m) - Nivelado arquitectónico PBR con Textura de Concreto
+    const groundMat = new THREE.MeshStandardMaterial({
+      map: texConcrete,
+      color: 0x1e293b,
+      roughness: 0.80,
+      metalness: 0.10
+    });
     const ground = new THREE.Mesh(new THREE.BoxGeometry(400, 2, 400), groundMat);
     ground.position.set(0, -1.8, 50); // Losa base: cota superior en Y = -0.80
     ground.receiveShadow = true;
     outdoor.add(ground);
 
-    // Parterres de Césped Verde delimitados (Cota superior en Y = -0.45, libre de solapamientos)
-    const grassMat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.88, metalness: 0.0 });
+    // Parterres de Césped Verde delimitados con Textura Orgánica PBR
+    const grassMat = new THREE.MeshStandardMaterial({
+      map: texGrass,
+      color: 0x166534,
+      roughness: 0.88,
+      metalness: 0.0
+    });
     // Jardines perimetrales Oeste y Este (al norte de la vía de acceso, Z: -130 a 135)
     const lawnWest = new THREE.Mesh(new THREE.BoxGeometry(50, 0.35, 265), grassMat);
     lawnWest.position.set(-160, -0.625, 3);
@@ -708,15 +727,25 @@ function buildPlant3D() {
 
     outdoor.add(lawnWest, lawnEast, lawnSouthW, lawnSouthE, islandWest, islandEast);
 
-    // Vía de Acceso Principal Asfaltada (Cota superior en Y = -0.500)
-    const roadMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.85, metalness: 0.12 });
+    // Vía de Acceso Principal Asfaltada PBR (Cota superior en Y = -0.500)
+    const roadMat = new THREE.MeshStandardMaterial({
+      map: texAsphalt,
+      color: 0x1e2430,
+      roughness: 0.82,
+      metalness: 0.15
+    });
     const road = new THREE.Mesh(new THREE.BoxGeometry(380, 0.25, 50), roadMat);
     road.position.set(0, -0.625, 165);
     road.receiveShadow = true;
     outdoor.add(road);
 
     // Patio de Maniobras para Camiones (Apron pavimentado, Cota superior en Y = -0.500)
-    const apronMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.80, metalness: 0.08 });
+    const apronMat = new THREE.MeshStandardMaterial({
+      map: texConcrete,
+      color: 0x334155,
+      roughness: 0.72,
+      metalness: 0.12
+    });
     const apron = new THREE.Mesh(new THREE.BoxGeometry(180, 0.25, 45), apronMat);
     apron.position.set(0, -0.625, 122.5);
     apron.receiveShadow = true;
@@ -829,51 +858,83 @@ function buildPlant3D() {
       addCollisionBox(evX - 1.2, evX + 1.2, 115, 118, 0, 8, "EVCharger");
     }
 
-    // Helper: Crear Vehículos 3D Estilizados
+    // Helper: Crear Vehículos 3D Estilizados de Alta Gama PBR
     function createCar(x, z, colorHex, isVan = false) {
       const car = new THREE.Group();
-      const bodyMat = new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.7, roughness: 0.3 });
-      const glassCarMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, metalness: 0.9, roughness: 0.1, transparent: true, opacity: 0.75 });
-      const blackMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
-      const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95 });
+      const bodyMat = new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.85, roughness: 0.22 });
+      const glassCarMat = new THREE.MeshStandardMaterial({
+        color: 0x0284c7,
+        metalness: 0.95,
+        roughness: 0.05,
+        transparent: true,
+        opacity: 0.78
+      });
+      const trimDarkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.75 });
+      const chromeMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.95, roughness: 0.1 });
+      const tireMat = new THREE.MeshStandardMaterial({ color: 0x18181b, roughness: 0.92 });
+      const brakeCaliperMat = new THREE.MeshStandardMaterial({ color: 0xef4444, metalness: 0.6, roughness: 0.3 });
 
       if (isVan) {
-        const lower = new THREE.Mesh(new THREE.BoxGeometry(6.5, 3.2, 13.5), bodyMat);
-        lower.position.set(0, 2.4, 0);
-        const cabinGlass = new THREE.Mesh(new THREE.BoxGeometry(6.3, 2.0, 4.0), glassCarMat);
-        cabinGlass.position.set(0, 3.8, 3.2);
-        const logoStripe = new THREE.Mesh(new THREE.BoxGeometry(6.55, 1.2, 7.0), new THREE.MeshBasicMaterial({ color: 0x0ea5e9 }));
-        logoStripe.position.set(0, 2.8, -1.5);
-        car.add(lower, cabinGlass, logoStripe);
+        // Van utilitaria moderna
+        const lower = new THREE.Mesh(new THREE.BoxGeometry(6.6, 2.6, 13.8), bodyMat);
+        lower.position.set(0, 2.0, 0);
+        const upper = new THREE.Mesh(new THREE.BoxGeometry(6.4, 2.4, 13.4), bodyMat);
+        upper.position.set(0, 4.2, -0.1);
+        const windshield = new THREE.Mesh(new THREE.BoxGeometry(6.2, 1.8, 3.6), glassCarMat);
+        windshield.position.set(0, 3.8, 3.4);
+        windshield.rotation.x = -0.3;
+        const sideStripe = new THREE.Mesh(new THREE.BoxGeometry(6.65, 1.0, 8.5), new THREE.MeshBasicMaterial({ color: 0x0ea5e9 }));
+        sideStripe.position.set(0, 3.0, -1.2);
+        car.add(lower, upper, windshield, sideStripe);
       } else {
-        const lower = new THREE.Mesh(new THREE.BoxGeometry(6.2, 2.2, 12.5), bodyMat);
-        lower.position.set(0, 1.8, 0);
-        const cabin = new THREE.Mesh(new THREE.BoxGeometry(5.6, 2.0, 6.8), glassCarMat);
-        cabin.position.set(0, 3.7, -0.6);
-        const roof = new THREE.Mesh(new THREE.BoxGeometry(5.5, 0.2, 6.5), bodyMat);
-        roof.position.set(0, 4.8, -0.6);
-        car.add(lower, cabin, roof);
+        // Sedán / Crossover aerodinámico moderno
+        const chassis = new THREE.Mesh(new THREE.BoxGeometry(6.4, 1.5, 12.8), bodyMat);
+        chassis.position.set(0, 1.5, 0);
+        const hoodSlope = new THREE.Mesh(new THREE.BoxGeometry(6.2, 0.7, 3.6), bodyMat);
+        hoodSlope.rotation.x = -0.12;
+        hoodSlope.position.set(0, 2.3, 3.6);
+        const cabin = new THREE.Mesh(new THREE.BoxGeometry(5.6, 1.8, 6.4), glassCarMat);
+        cabin.position.set(0, 3.2, -0.4);
+        const roof = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.2, 5.6), bodyMat);
+        roof.position.set(0, 4.2, -0.4);
+        const spoiler = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.15, 0.8), trimDarkMat);
+        spoiler.position.set(0, 2.6, -6.1);
+        car.add(chassis, hoodSlope, cabin, roof, spoiler);
       }
 
-      for (let wx of [-3.2, 3.2]) {
+      // Espejos retrovisores aerodinámicos
+      for (let mx of [-3.3, 3.3]) {
+        const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.5), trimDarkMat);
+        mirror.position.set(mx, 3.1, 1.6);
+        car.add(mirror);
+      }
+
+      // 4 Ruedas deportivas con llantas de aleación, discos de freno y pinzas rojas
+      for (let wx of [-3.25, 3.25]) {
         for (let wz of [-4.0, 4.0]) {
-          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.9, 12), blackMat);
+          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.25, 0.9, 16), tireMat);
           wheel.rotation.z = Math.PI / 2;
-          wheel.position.set(wx, 1.2, wz);
-          const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.95, 8), chromeMat);
+          wheel.position.set(wx, 1.25, wz);
+          const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.75, 0.75, 0.94, 12), chromeMat);
           rim.rotation.z = Math.PI / 2;
-          rim.position.set(wx, 1.2, wz);
-          car.add(wheel, rim);
+          rim.position.set(wx, 1.25, wz);
+          const caliper = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.4), brakeCaliperMat);
+          caliper.position.set(wx > 0 ? wx - 0.25 : wx + 0.25, 1.5, wz + 0.2);
+          car.add(wheel, rim, caliper);
         }
       }
 
-      const fLightL = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 0.1), new THREE.MeshBasicMaterial({ color: 0xfffbeb }));
-      fLightL.position.set(-2.0, 2.0, 6.3);
-      const fLightR = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 0.1), new THREE.MeshBasicMaterial({ color: 0xfffbeb }));
-      fLightR.position.set(2.0, 2.0, 6.3);
-      const rLight = new THREE.Mesh(new THREE.BoxGeometry(5.0, 0.5, 0.1), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-      rLight.position.set(0, 2.0, -6.3);
-      car.add(fLightL, fLightR, rLight);
+      // Ópticas LED frontales y traseras con material autoluminoso
+      const fLightL = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.35, 0.1), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      fLightL.position.set(-2.0, 2.0, 6.42);
+      const fLightR = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.35, 0.1), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+      fLightR.position.set(2.0, 2.0, 6.42);
+      const grille = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.7, 0.15), trimDarkMat);
+      grille.position.set(0, 1.8, 6.42);
+
+      const rLight = new THREE.Mesh(new THREE.BoxGeometry(5.4, 0.3, 0.1), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
+      rLight.position.set(0, 2.3, -6.42);
+      car.add(fLightL, fLightR, grille, rLight);
 
       car.position.set(x, -0.50, z); // Neumáticos asentados al ras de la rasante de rodadura Y = -0.50
       outdoor.add(car);
@@ -882,10 +943,92 @@ function buildPlant3D() {
 
     createCar(-151, 126, 0x0ea5e9, true);  // Van Eléctrica OTech
     createCar(-135, 126, 0x3b82f6, false); // SUV Ejecutivo Azul
-    createCar(-127, 126, 0xf8fafc, false); // Sedán Blanco
+    createCar(-127, 126, 0xf8fafc, false); // Sedán Blanco Perla
     createCar(-119, 126, 0x475569, false); // Sedán Gris Grafito
     createCar(-103, 126, 0xdc2626, false); // Crossover Rojo
     createCar(-95, 126, 0x0284c7, true);   // Van Soporte Técnico
+
+    // Helper: Montacargas Industrial de Almacén (Forklift)
+    function createForklift(x, z, ry = 0) {
+      const fl = new THREE.Group();
+      const flYellowMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.6, roughness: 0.35 });
+      const flDarkMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 });
+      const flForkMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.9, roughness: 0.2 });
+
+      // Chasis principal y contrapeso posterior
+      const body = new THREE.Mesh(new THREE.BoxGeometry(4.2, 2.4, 6.0), flYellowMat);
+      body.position.set(0, 1.8, 0);
+      const cweight = new THREE.Mesh(new THREE.CylinderGeometry(2.1, 2.1, 2.4, 12, 1, false, 0, Math.PI), flDarkMat);
+      cweight.rotation.y = Math.PI / 2;
+      cweight.position.set(0, 1.8, -3.0);
+
+      // Jaula de protección antivuelco (FOPS/ROPS)
+      const cageTop = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.2, 4.0), flDarkMat);
+      cageTop.position.set(0, 5.8, -0.2);
+      for (let px of [-1.7, 1.7]) {
+        for (let pz of [-1.9, 1.9]) {
+          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 2.8, 8), flDarkMat);
+          post.position.set(px, 4.4, pz);
+          fl.add(post);
+        }
+      }
+      // Asiento y volante
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 1.6), flDarkMat);
+      seat.position.set(0, 3.4, -0.6);
+      const steering = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.08, 8, 12), flDarkMat);
+      steering.rotation.x = Math.PI / 3;
+      steering.position.set(0, 4.2, 1.0);
+
+      // Mástil vertical de elevación doble etapa
+      const mastL = new THREE.Mesh(new THREE.BoxGeometry(0.3, 7.5, 0.4), flDarkMat);
+      mastL.position.set(-1.6, 4.5, 3.4);
+      const mastR = new THREE.Mesh(new THREE.BoxGeometry(0.3, 7.5, 0.4), flDarkMat);
+      mastR.position.set(1.6, 4.5, 3.4);
+      const carriage = new THREE.Mesh(new THREE.BoxGeometry(3.8, 1.2, 0.3), flDarkMat);
+      carriage.position.set(0, 2.0, 3.6);
+
+      // Horquillas / Uñas de carga de acero
+      for (let fx of [-1.0, 1.0]) {
+        const forkV = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2.0, 0.2), flForkMat);
+        forkV.position.set(fx, 1.5, 3.8);
+        const forkH = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.15, 3.2), flForkMat);
+        forkH.position.set(fx, 0.5, 5.4);
+        fl.add(forkV, forkH);
+      }
+
+      // Palé de madera con cajas de logística
+      const pallet = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.3, 3.2), new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.8 }));
+      pallet.position.set(0, 0.7, 5.4);
+      const box1 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 1.4), new THREE.MeshStandardMaterial({ color: 0xd97706 }));
+      box1.position.set(-0.8, 1.5, 5.4);
+      const box2 = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.4, 1.4), new THREE.MeshStandardMaterial({ color: 0xb45309 }));
+      box2.position.set(0.8, 1.5, 5.4);
+
+      // Ruedas industriales macizas
+      const tireMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 });
+      for (let wx of [-1.9, 1.9]) {
+        const wFront = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.7, 16), tireMat);
+        wFront.rotation.z = Math.PI / 2;
+        wFront.position.set(wx, 1.0, 1.8);
+        const wRear = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.8, 0.6, 16), tireMat);
+        wRear.rotation.z = Math.PI / 2;
+        wRear.position.set(wx, 0.8, -2.2);
+        fl.add(wFront, wRear);
+      }
+
+      // Faro de destello estroboscópico de seguridad (Beacon)
+      const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.4, 12), new THREE.MeshBasicMaterial({ color: 0xf59e0b }));
+      beacon.position.set(0, 6.1, -1.8);
+
+      fl.add(body, cweight, cageTop, seat, steering, mastL, mastR, carriage, pallet, box1, box2, beacon);
+      fl.rotation.y = ry;
+      fl.position.set(x, -0.50, z);
+      outdoor.add(fl);
+      addCollisionBox(x - 3.0, x + 3.0, z - 4.5, z + 7.0, 0, 8, "Forklift");
+    }
+
+    // Ubicar Montacargas activo frente al Muelle 1
+    createForklift(-36, 114, Math.PI / 4);
 
     // Garita de Vigilancia, Isla de Acceso y Control Vial Profesional
     // Ubicada en la isla central de acceso (X: -60, Z: 150)
@@ -1031,22 +1174,43 @@ function buildPlant3D() {
     outdoor.add(totemGroup);
     addCollisionBox(-98, -82, 175, 181, 0, 22, "TotemSign");
 
-    // Camiones de Carga y Logística Industrial (2 Camiones con Furgón)
+    // Camiones de Carga y Logística Industrial PBR con Aerodinámica
     function createFreightTruck(x, z, trailerColor, isReceiving = true) {
       const truck = new THREE.Group();
-      const cabMat = new THREE.MeshStandardMaterial({ color: isReceiving ? 0xdc2626 : 0x0284c7, metalness: 0.7, roughness: 0.3 });
-      const trailerMat = new THREE.MeshStandardMaterial({ color: trailerColor, metalness: 0.4, roughness: 0.5 });
+      const cabMat = new THREE.MeshStandardMaterial({ color: isReceiving ? 0xdc2626 : 0x0284c7, metalness: 0.75, roughness: 0.28 });
+      const trailerMat = new THREE.MeshStandardMaterial({
+        map: texCorrugated,
+        color: trailerColor,
+        metalness: 0.45,
+        roughness: 0.45
+      });
       const blackMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
-      const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95 });
+      const chromeMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.95, roughness: 0.1 });
 
-      // Cabina Tractora
+      // Cabina Tractora con deflector de viento aerodinámico
       const cab = new THREE.Mesh(new THREE.BoxGeometry(10.5, 11, 10), cabMat);
       cab.position.set(0, 6.5, 15);
-      const cabGlass = new THREE.Mesh(new THREE.BoxGeometry(10.6, 4.5, 4.0), new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.7 }));
+      const cabGlass = new THREE.Mesh(new THREE.BoxGeometry(10.6, 4.5, 4.0), new THREE.MeshStandardMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.7, roughness: 0.1 }));
       cabGlass.position.set(0, 8.5, 16.5);
+      const cabDeflector = new THREE.Mesh(new THREE.BoxGeometry(9.8, 3.2, 7.5), cabMat);
+      cabDeflector.rotation.x = -0.28;
+      cabDeflector.position.set(0, 12.8, 14.2);
       const grill = new THREE.Mesh(new THREE.BoxGeometry(8.0, 4.0, 0.4), chromeMat);
       grill.position.set(0, 4.5, 20.1);
-      truck.add(cab, cabGlass, grill);
+      truck.add(cab, cabGlass, cabDeflector, grill);
+
+      // Chimenea de escape vertical cromada
+      const exhaust = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 12, 12), chromeMat);
+      exhaust.position.set(-5.1, 11.0, 9.8);
+      truck.add(exhaust);
+
+      // Depósitos laterales de combustible de aluminio
+      for (let tx of [-5.2, 5.2]) {
+        const fuelTank = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 4.8, 12), chromeMat);
+        fuelTank.rotation.x = Math.PI / 2;
+        fuelTank.position.set(tx, 2.4, 5.0);
+        truck.add(fuelTank);
+      }
 
       // Furgón de Carga (Trailer acoplado)
       const trailer = new THREE.Mesh(new THREE.BoxGeometry(11, 13.5, 26), trailerMat);
@@ -1154,32 +1318,35 @@ function buildPlant3D() {
       treePositions.push([170, az], [-170, az]);
     }
 
-    const trunkGeo = new THREE.CylinderGeometry(0.7, 1.1, 8, 8);
-    const leaves1Geo = new THREE.ConeGeometry(5.5, 9, 8);
-    const leaves2Geo = new THREE.ConeGeometry(4.2, 7, 8);
-    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.92 });
-    const leaves1Mat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.85 });
-    const leaves2Mat = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.85 });
+    // Árboles Arquitectónicos Estilizados PBR (THREE.InstancedMesh con Copas Poliédricas Suaves)
+    const trunkGeo = new THREE.CylinderGeometry(0.65, 1.15, 8.5, 10);
+    const leaves1Geo = new THREE.DodecahedronGeometry(5.4, 1);
+    const leaves2Geo = new THREE.DodecahedronGeometry(3.9, 1);
+    const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5b3419, roughness: 0.95 });
+    const leaves1Mat = new THREE.MeshStandardMaterial({ color: 0x14532d, roughness: 0.82, metalness: 0.05 });
+    const leaves2Mat = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.80, metalness: 0.05 });
 
     const trunksInst = new THREE.InstancedMesh(trunkGeo, trunkMat, treePositions.length);
     const leaves1Inst = new THREE.InstancedMesh(leaves1Geo, leaves1Mat, treePositions.length);
     const leaves2Inst = new THREE.InstancedMesh(leaves2Geo, leaves2Mat, treePositions.length);
 
     treePositions.forEach(([tx, tz], idx) => {
-      // Tronco asentado exactamente en Y = -0.50 (altura 8 -> centro en Y = 3.50)
-      instDummy.position.set(tx, 3.5, tz);
+      // Tronco asentado exactamente en Y = -0.50 (altura 8.5 -> centro en Y = 3.75)
+      instDummy.position.set(tx, 3.75, tz);
       instDummy.rotation.set(0, 0, 0);
       instDummy.scale.set(1, 1, 1);
       instDummy.updateMatrix();
       trunksInst.setMatrixAt(idx, instDummy.matrix);
 
-      // Copa cónica inferior
-      instDummy.position.set(tx, 9.0, tz);
+      // Follaje arquitectónico inferior
+      instDummy.position.set(tx, 9.2, tz);
+      instDummy.rotation.set(0.1, idx * 0.5, 0.05);
       instDummy.updateMatrix();
       leaves1Inst.setMatrixAt(idx, instDummy.matrix);
 
-      // Copa cónica superior
-      instDummy.position.set(tx, 13.5, tz);
+      // Follaje arquitectónico superior
+      instDummy.position.set(tx, 13.8, tz);
+      instDummy.rotation.set(-0.05, -idx * 0.3, 0.1);
       instDummy.updateMatrix();
       leaves2Inst.setMatrixAt(idx, instDummy.matrix);
 
@@ -1574,19 +1741,29 @@ function buildPlant3D() {
   // -------------------------------------------------------------------------
   // 1. PISO 1 (NIVEL Y = 0): PLANTA INDUSTRIAL Y LOGÍSTICA
   // -------------------------------------------------------------------------
-  // Losa de Cimentación General Piso 1 (200 x 200)
+  // Losa de Cimentación General Piso 1 (200 x 200) con textura de Concreto Epóxico PBR
   const floorFabrica = new THREE.Mesh(
     new THREE.BoxGeometry(200, 2, 200),
-    new THREE.MeshStandardMaterial({ color: 0x1e2530, roughness: 0.7, metalness: 0.1 })
+    new THREE.MeshStandardMaterial({
+      map: texConcrete,
+      color: 0x1e2530,
+      roughness: 0.65,
+      metalness: 0.18
+    })
   );
   floorFabrica.position.set(0, -1, 0);
   floorFabrica.receiveShadow = true;
   window.plantFloor1Group.add(floorFabrica);
 
-  // Zona EPA / ESD Azul (Piso Antiestático de 140 x 120)
+  // Zona EPA / ESD Azul (Piso Antiestático con brillo epóxico PBR)
   const epaMesh = new THREE.Mesh(
     new THREE.BoxGeometry(140, 0.2, 120),
-    new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.4, metalness: 0.2 })
+    new THREE.MeshStandardMaterial({
+      map: texConcrete,
+      color: 0x0284c7,
+      roughness: 0.38,
+      metalness: 0.22
+    })
   );
   epaMesh.position.set(0, 0.1, -10);
   epaMesh.receiveShadow = true;
@@ -1606,8 +1783,13 @@ function buildPlant3D() {
     window.plantFloor1Group.add(lMesh);
   });
 
-  // Muros Perimetrales Piso 1 (Nave Industrial 200 x 200)
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.7, metalness: 0.2 });
+  // Muros Perimetrales Piso 1 (Chapa arquitectónica acanalada PBR 200 x 200)
+  const wallMat = new THREE.MeshStandardMaterial({
+    map: texCorrugated,
+    color: 0x334155,
+    roughness: 0.62,
+    metalness: 0.38
+  });
   const wallP1Back = new THREE.Mesh(new THREE.BoxGeometry(200, 36, 3), wallMat);
   wallP1Back.position.set(0, 18, -100);
   const wallP1West = new THREE.Mesh(new THREE.BoxGeometry(3, 36, 200), wallMat);
@@ -1876,8 +2058,13 @@ function buildPlant3D() {
 
   window.plantFloor2Group.add(losaNorth, losaEast, losaSouth);
 
-  // Suelo técnico de pasillos Piso 2 (Madera / Vinilo arquitectónico mate, grosor 0.1, Y = 0.05)
-  const woodHallMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.7, metalness: 0.05 });
+  // Suelo técnico de pasillos Piso 2 (Vinilo arquitectónico mate PBR, grosor 0.1, Y = 0.05)
+  const woodHallMat = new THREE.MeshStandardMaterial({
+    map: texConcrete,
+    color: 0x94a3b8,
+    roughness: 0.65,
+    metalness: 0.12
+  });
   const floorNorth = new THREE.Mesh(new THREE.BoxGeometry(196, 0.1, 114), woodHallMat);
   floorNorth.position.set(0, 0.05, -39);
   const floorEast = new THREE.Mesh(new THREE.BoxGeometry(166, 0.1, 56), woodHallMat);
@@ -4130,6 +4317,15 @@ function onWindowResize() {
   camera.aspect = width / height;
   camera.updateProjectionMatrix();
   renderer.setSize(width, height);
+  if (composer) {
+    composer.setSize(width, height);
+    if (bloomPass) bloomPass.setSize(width, height);
+    if (fxaaPass) {
+      const pixelRatio = renderer.getPixelRatio();
+      fxaaPass.material.uniforms['resolution'].value.x = 1 / (width * pixelRatio);
+      fxaaPass.material.uniforms['resolution'].value.y = 1 / (height * pixelRatio);
+    }
+  }
 }
 
 // Animation Loop
@@ -4536,7 +4732,11 @@ function animate() {
     }
   }
 
-  renderer.render(scene, camera);
+  if (composer) {
+    composer.render();
+  } else {
+    renderer.render(scene, camera);
+  }
 }
 
 // Procedural Architectural Sky Dome Shader
@@ -4577,6 +4777,200 @@ function createSkyDome() {
   const skyMesh = new THREE.Mesh(skyGeo, skyMat);
   skyMesh.name = "plantSkyDome";
   return skyMesh;
+}
+
+// =========================================================================
+// PIPELINE GRÁFICO PBR & TEXTURAS PROCEDURALES CANVAS DE ALTA RESOLUCIÓN
+// =========================================================================
+
+function createAsphaltPBRTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#1e2430';
+  ctx.fillRect(0, 0, 512, 512);
+
+  const imgData = ctx.getImageData(0, 0, 512, 512);
+  const data = imgData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const noise = (Math.random() - 0.5) * 36;
+    data[i] = Math.min(255, Math.max(0, data[i] + noise));
+    data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+    data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise * 1.2));
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  for (let s = 0; s < 45; s++) {
+    const sx = Math.random() * 512;
+    const sy = Math.random() * 512;
+    const sr = 3 + Math.random() * 10;
+    ctx.fillStyle = 'rgba(12, 16, 24, 0.22)';
+    ctx.beginPath();
+    ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(22, 22);
+  return tex;
+}
+
+function createConcretePBRTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 512;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#222938';
+  ctx.fillRect(0, 0, 512, 512);
+
+  const imgData = ctx.getImageData(0, 0, 512, 512);
+  const data = imgData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const noise = (Math.random() - 0.5) * 16;
+    data[i] = Math.min(255, Math.max(0, data[i] + noise));
+    data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+    data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  // Cuadrícula arquitectónica de losa con juntas de dilatación
+  ctx.strokeStyle = 'rgba(10, 14, 22, 0.65)';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(0, 0, 512, 512);
+  ctx.beginPath();
+  ctx.moveTo(256, 0); ctx.lineTo(256, 512);
+  ctx.moveTo(0, 256); ctx.lineTo(512, 256);
+  ctx.stroke();
+
+  // Bisel de luz
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(258, 0); ctx.lineTo(258, 512);
+  ctx.moveTo(0, 258); ctx.lineTo(512, 258);
+  ctx.stroke();
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(16, 16);
+  return tex;
+}
+
+function createCorrugatedPBRTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(0, 0, 256, 256);
+
+  for (let x = 0; x < 256; x += 16) {
+    const grad = ctx.createLinearGradient(x, 0, x + 16, 0);
+    grad.addColorStop(0.0, 'rgba(15, 23, 42, 0.85)');
+    grad.addColorStop(0.3, 'rgba(51, 65, 85, 0.35)');
+    grad.addColorStop(0.7, 'rgba(148, 163, 184, 0.20)');
+    grad.addColorStop(1.0, 'rgba(15, 23, 42, 0.85)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x, 0, 16, 256);
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(16, 4);
+  return tex;
+}
+
+function createLawnPBRTexture() {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 256;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#15803d';
+  ctx.fillRect(0, 0, 256, 256);
+
+  const imgData = ctx.getImageData(0, 0, 256, 256);
+  const data = imgData.data;
+  for (let i = 0; i < data.length; i += 4) {
+    const noise = (Math.random() - 0.5) * 36;
+    data[i] = Math.min(255, Math.max(0, data[i] + noise * 0.7));
+    data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise * 1.2));
+    data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise * 0.4));
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(18, 18);
+  return tex;
+}
+
+function generateProceduralEnvironmentMap(rendererInstance) {
+  if (!rendererInstance || typeof THREE.PMREMGenerator === 'undefined') return null;
+  try {
+    const pmremGenerator = new THREE.PMREMGenerator(rendererInstance);
+    pmremGenerator.compileEquirectangularShader();
+
+    const envScene = new THREE.Scene();
+    envScene.background = new THREE.Color(0xdbeafe);
+
+    const skyMesh = createSkyDome();
+    skyMesh.scale.setScalar(0.2);
+    envScene.add(skyMesh);
+
+    const sun = new THREE.DirectionalLight(0xfffaed, 3.2);
+    sun.position.set(80, 160, 60);
+    envScene.add(sun);
+
+    const hemi = new THREE.HemisphereLight(0xe0f2fe, 0x1e293b, 1.2);
+    envScene.add(hemi);
+
+    const renderTarget = pmremGenerator.fromScene(envScene, 0.04);
+    pmremGenerator.dispose();
+    return renderTarget.texture;
+  } catch (err) {
+    console.warn("IBL Environment generator error:", err);
+    return null;
+  }
+}
+
+function setupPostprocessing(container) {
+  if (!window.THREE || typeof THREE.EffectComposer === 'undefined') {
+    return;
+  }
+  const width = (container && container.clientWidth > 0) ? container.clientWidth : window.innerWidth;
+  const height = (container && container.clientHeight > 0) ? container.clientHeight : Math.max(300, window.innerHeight - 64);
+
+  try {
+    composer = new THREE.EffectComposer(renderer);
+    renderPass = new THREE.RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    if (typeof THREE.UnrealBloomPass !== 'undefined') {
+      bloomPass = new THREE.UnrealBloomPass(
+        new THREE.Vector2(width, height),
+        0.32, // strength
+        0.35, // radius
+        0.85  // threshold
+      );
+      composer.addPass(bloomPass);
+    }
+
+    if (typeof THREE.ShaderPass !== 'undefined' && typeof THREE.FXAAShader !== 'undefined') {
+      fxaaPass = new THREE.ShaderPass(THREE.FXAAShader);
+      const pixelRatio = renderer.getPixelRatio();
+      fxaaPass.material.uniforms['resolution'].value.x = 1 / (width * pixelRatio);
+      fxaaPass.material.uniforms['resolution'].value.y = 1 / (height * pixelRatio);
+      composer.addPass(fxaaPass);
+    }
+  } catch (e) {
+    console.warn("Postprocessing initialization error, falling back to direct render:", e);
+    composer = null;
+  }
 }
 
 // Setup Three.js Scene, Camera & Lights
@@ -4620,6 +5014,15 @@ function initThree() {
 
   // Lighting
   setupLights();
+
+  // Entorno IBL Fotorrealista y Post-Processing Bloom/FXAA
+  try {
+    pbrEnvMap = generateProceduralEnvironmentMap(renderer);
+    if (pbrEnvMap) scene.environment = pbrEnvMap;
+  } catch (e) {
+    console.warn("PBR Environment map fallback:", e);
+  }
+  setupPostprocessing(container);
 
   // Raycaster & Mouse
   raycaster = new THREE.Raycaster();
