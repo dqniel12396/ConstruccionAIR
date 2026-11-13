@@ -38,25 +38,53 @@ Este repositorio está preparado para **GitHub Pages** sin configuraciones compl
 
 ---
 
-## 📂 Estructura de Archivos
+## 📂 Estructura Arquitectónica del Proyecto
 
 ```text
-├── index.html                           # Aplicación Web 3D interactiva principal (Página de inicio GitHub Pages)
+├── index.html                           # Aplicación Web 3D interactiva principal (Gemelo Digital)
 ├── portal.html                          # Plataforma Web Cloud (Dashboard, Mapa, Estadísticas y Gestión)
-├── app.js                               # Motor 3D Three.js: Estación IP65, Planta Fabril, PTAR y simulación
-├── styles.css                           # Diseño visual y controles de ingeniería
+├── app.js                               # Motor 3D Three.js: Pipeline PBR, Post-Processing Bloom/FXAA y Simulación
+├── styles.css                           # Diseño visual glassmorphism y controles de ingeniería
+├── portal-auth.js                       # Autenticación multi-rol y persistencia local
+├── panel-empresa.js                     # Lógica de telemetría IoT, gráficos Chart.js y mapa Leaflet
+├── panel-empresa.css                    # Estilos CSS de la plataforma corporativa
+├── mapa-estaciones.html                 # Vista satelital GIS de estaciones con pluma ICA
+├── mapa-estaciones.js                   # Lógica de capas Leaflet y datos geoespaciales
+├── bogota-base.svg                      # Capa vectorial de referencia geográfica
+├── diagrama_bases_datos_otech.png       # Diagrama Entidad-Relación HD para consulta rápida
+├── schema_database_otech.sql            # Script SQL DDL (PostgreSQL 16 + TimescaleDB)
 ├── .nojekyll                            # Archivo de anulación de Jekyll para GitHub Pages
 │
-├── ENTREGA_FINAL_OTECH_PLATAFORMA_WEB/  # Paquete de la Plataforma Cloud & Base de Datos
-│   ├── index.html                       # Plataforma Web Cloud independiente
-│   ├── diagrama_bases_datos_otech.png   # Diagrama Entidad-Relación en Ultra HD 4K
-│   ├── schema_database_otech.sql        # Script DDL SQL (PostgreSQL 16 + TimescaleDB)
-│   ├── ARQUITECTURA_BASE_DATOS_Y_MOCKUPS.pdf # Documento PDF oficial
-│   └── ARQUITECTURA_BASE_DATOS_Y_MOCKUPS.md  # Especificación técnica
+├── 📁 cad_models/                       # Modelos CAD 3D y piezas paramétricas
+│   ├── *.stl                            # Cúpula, Gabinete IP65, Bandeja, Cámara Stevenson, Soporte
+│   ├── *.obj, *.mtl                     # Mallas 3D de la Estación y Complejo Industrial
+│   ├── *.scad                           # Scripts OpenSCAD de modelado geométrico
+│   └── *.ipt                            # Modelos de ensamblaje Autodesk Inventor
 │
-├── DOCUMENTOS FAINLES/                  # Documentos finales de constitución y SDLC
-├── *.stl, *.obj, *.mtl, *.scad          # Modelos CAD de la estación y nave fabril
-└── README.md                            # Guía general
+├── 📁 documentacion/                    # Documentación académica y de negocio
+│   ├── 📁 informes_sdlc/                # Informes del Ciclo de Vida del Software (PDF y Markdown)
+│   ├── 📁 plan_de_negocio/              # Plan de negocio y constitución empresarial
+│   ├── 📁 presentaciones/               # Diapositivas y material de sustentación
+│   └── 📁 prototipos/                   # Prototipos y mockups interactivos iniciales
+│
+├── 📁 database/                         # Migraciones SQL y esquema relacional
+│   ├── 001_inicial.sql, 002_acceso_portal.sql, 003_panel_empresa.sql
+│   ├── activar_timescaledb.sql, demo_empresas.sql
+│   └── supabase-ca.pem, supabase.ps1
+│
+├── 📁 scripts/                          # Herramientas de automatización y desarrollo
+│   ├── 📁 cad/                          # Generadores de modelos CAD en Python y Fusion 360
+│   ├── 📁 doc_tools/                    # Conversores y generadores de informes Markdown a PDF
+│   └── 📁 utilidades/                   # Scripts de captura CDP, sincronización y pruebas
+│
+├── 📁 assets/                           # Recursos gráficos estáticos
+│   ├── 📁 imagenes_documento/           # Diagramas y capturas de informes
+│   ├── 📁 scratch_images/               # Renders intermedios
+│   └── 📁 user_screenshots/             # Evidencias visuales
+│
+├── 📁 leaflet/                          # Biblioteca Leaflet local y recursos GIS
+├── 📁 ENTREGA_FINAL_OTECH_PLATAFORMA_WEB/ # Paquete autocontenido para entrega final
+└── README.md                            # Guía y documentación general
 ```
 
 ---
