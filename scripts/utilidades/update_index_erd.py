@@ -1,6 +1,6 @@
 import os
 
-html_path = r"ENTREGA_FINAL_OTECH_PLATAFORMA_WEB\index.html"
+html_path = r"plataforma_web\portal.html"
 with open(html_path, "r", encoding="utf-8") as f:
     content = f.read()
 

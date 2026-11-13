@@ -41,19 +41,25 @@ Este repositorio está preparado para **GitHub Pages** sin configuraciones compl
 ## 📂 Estructura Arquitectónica del Proyecto
 
 ```text
-├── index.html                           # Aplicación Web 3D interactiva principal (Gemelo Digital)
-├── portal.html                          # Plataforma Web Cloud (Dashboard, Mapa, Estadísticas y Gestión)
-├── app.js                               # Motor 3D Three.js: Pipeline PBR, Post-Processing Bloom/FXAA y Simulación
-├── styles.css                           # Diseño visual glassmorphism y controles de ingeniería
-├── portal-auth.js                       # Autenticación multi-rol y persistencia local
-├── panel-empresa.js                     # Lógica de telemetría IoT, gráficos Chart.js y mapa Leaflet
-├── panel-empresa.css                    # Estilos CSS de la plataforma corporativa
-├── mapa-estaciones.html                 # Vista satelital GIS de estaciones con pluma ICA
-├── mapa-estaciones.js                   # Lógica de capas Leaflet y datos geoespaciales
-├── bogota-base.svg                      # Capa vectorial de referencia geográfica
-├── diagrama_bases_datos_otech.png       # Diagrama Entidad-Relación HD para consulta rápida
-├── schema_database_otech.sql            # Script SQL DDL (PostgreSQL 16 + TimescaleDB)
-├── .nojekyll                            # Archivo de anulación de Jekyll para GitHub Pages
+├── index.html                           # Portal Central y Lanzador de Aplicaciones (GitHub Pages Hub)
+├── README.md                            # Guía y documentación general del proyecto
+├── .gitignore                           # Exclusiones estándar de Git
+│
+├── 📁 gemelo_digital_3d/                # Gemelo Digital 3D de Alta Fidelidad (Three.js / WebGL)
+│   ├── index.html                       # Visor 3D: Planta de Producción Lean & Estación Exterior IP65
+│   ├── app.js                           # Motor Three.js: Pipeline PBR, Post-processing Bloom/FXAA y Simulación
+│   └── styles.css                       # Estilos glassmorphism y controles de ingeniería (WASD, Floorplan)
+│
+├── 📁 plataforma_web/                   # Plataforma Web Cloud IoT Multi-Tenant
+│   ├── portal.html                      # Portal Corporativo con Acceso Rápido por Rol (1-Clic sin claves)
+│   ├── portal-auth.js                   # Lógica de autenticación RBAC y perfiles de demostración
+│   ├── panel-empresa.js                 # Telemetría en vivo, gráficos Chart.js y mapa Leaflet
+│   ├── panel-empresa.css                # Estilos visuales de la plataforma cloud
+│   ├── mapa-estaciones.html             # Mapa geoespacial de estaciones en tiempo real (Leaflet / Esri)
+│   ├── mapa-estaciones.js               # Dispersión de contaminantes y capas GIS
+│   ├── bogota-base.svg                  # Capa vectorial de referencia geográfica
+│   ├── diagrama_bases_datos_otech.png   # Diagrama Entidad-Relación HD (PostgreSQL + TimescaleDB)
+│   └── schema_database_otech.sql        # Script DDL de persistencia y particionamiento
 │
 ├── 📁 cad_models/                       # Modelos CAD 3D y piezas paramétricas
 │   ├── *.stl                            # Cúpula, Gabinete IP65, Bandeja, Cámara Stevenson, Soporte
@@ -67,24 +73,21 @@ Este repositorio está preparado para **GitHub Pages** sin configuraciones compl
 │   ├── 📁 presentaciones/               # Diapositivas y material de sustentación
 │   └── 📁 prototipos/                   # Prototipos y mockups interactivos iniciales
 │
-├── 📁 database/                         # Migraciones SQL y esquema relacional
+├── 📁 database/                         # Migraciones SQL y configuración de conexión
 │   ├── 001_inicial.sql, 002_acceso_portal.sql, 003_panel_empresa.sql
 │   ├── activar_timescaledb.sql, demo_empresas.sql
+│   ├── package.json, conexion.cjs
 │   └── supabase-ca.pem, supabase.ps1
 │
 ├── 📁 scripts/                          # Herramientas de automatización y desarrollo
 │   ├── 📁 cad/                          # Generadores de modelos CAD en Python y Fusion 360
 │   ├── 📁 doc_tools/                    # Conversores y generadores de informes Markdown a PDF
-│   └── 📁 utilidades/                   # Scripts de captura CDP, sincronización y pruebas
+│   └── 📁 utilidades/                   # Scripts de sincronización, render ERD y utilidades
 │
-├── 📁 assets/                           # Recursos gráficos estáticos
-│   ├── 📁 imagenes_documento/           # Diagramas y capturas de informes
-│   ├── 📁 scratch_images/               # Renders intermedios
-│   └── 📁 user_screenshots/             # Evidencias visuales
-│
-├── 📁 leaflet/                          # Biblioteca Leaflet local y recursos GIS
-├── 📁 ENTREGA_FINAL_OTECH_PLATAFORMA_WEB/ # Paquete autocontenido para entrega final
-└── README.md                            # Guía y documentación general
+└── 📁 assets/                           # Recursos gráficos estáticos
+    ├── 📁 imagenes_documento/           # Diagramas y capturas de informes
+    ├── 📁 scratch_images/               # Renders intermedios
+    └── 📁 user_screenshots/             # Evidencias visuales
 ```
 
 ---

@@ -174,24 +174,81 @@ const datosDemoEmpresa = {
   ]
 };
 
+// Soporte para Perfiles de Demostración y Acceso Directo por Rol y Vista
+const ROLES_ACCESO_RAPIDO = {
+  super_admin: {
+    nombre: 'Daniel Sanabria Rivera',
+    roles: ['SUPER_ADMIN_OTECH', 'ARQUITECTO_SDLC', 'DIRECTOR_TECNOLOGICO'],
+    organizacion: 'Ecosistema Industrial OTech AirNet S.A.S.',
+    vistas: ['dashboard', 'dispositivos', 'estadisticas', 'alertas', 'mantenimiento', 'reportes', 'database'],
+    defaultView: 'tab-dashboard'
+  },
+  admin_empresa: {
+    nombre: 'Ing. Juan José León',
+    roles: ['ADMIN_EMPRESA', 'GESTION_FLOTA_IOT'],
+    organizacion: 'Ecopetrol S.A. — Refinería & Complejos',
+    vistas: ['dashboard', 'dispositivos', 'estadisticas', 'alertas', 'mantenimiento', 'reportes'],
+    defaultView: 'tab-dispositivos'
+  },
+  analista_ambiental: {
+    nombre: 'Dra. Andrea Silva Castro',
+    roles: ['ANALISTA_AMBIENTAL', 'AUDITOR_CAR_EPA'],
+    organizacion: 'CAR — Corporación Autónoma Regional / IDEAM',
+    vistas: ['dashboard', 'estadisticas', 'alertas', 'reportes'],
+    defaultView: 'tab-estadisticas'
+  },
+  tecnico_campo: {
+    nombre: 'Jamyson Steven Rolón',
+    roles: ['TECNICO_CAMPO', 'CALIBRACION_HARDWARE'],
+    organizacion: 'Red de Soporte Metrológico OTech',
+    vistas: ['dashboard', 'dispositivos', 'alertas', 'mantenimiento'],
+    defaultView: 'tab-mantenimiento'
+  },
+  visualizador_publico: {
+    nombre: 'Consulta Ciudadana Abierta',
+    roles: ['VISUALIZADOR_PUBLICO', 'MONITOREO_ABIERTO'],
+    organizacion: 'Alcaldía Mayor de Bogotá — Sistema Abierto ICA',
+    vistas: ['dashboard'],
+    defaultView: 'tab-dashboard'
+  }
+};
+
+function ingresarConRol(rolKey, targetView) {
+  const perfil = ROLES_ACCESO_RAPIDO[rolKey] || ROLES_ACCESO_RAPIDO.super_admin;
+  currentUser = 'demo-' + rolKey;
+  allowedTabs.clear();
+  perfil.vistas.forEach(v => allowedTabs.add('tab-' + v));
+
+  // Actualizar visibilidad de opciones en la barra de navegación según permisos del rol
+  document.querySelectorAll('[data-view]').forEach(el => {
+    el.hidden = !allowedTabs.has(el.dataset.view);
+  });
+  document.querySelectorAll('.tab-content').forEach(section => {
+    section.hidden = !allowedTabs.has(section.id);
+  });
+
+  const pName = document.getElementById('profile-name');
+  const pRoles = document.getElementById('profile-roles');
+  const pOrg = document.getElementById('profile-org');
+  if (pName) pName.textContent = perfil.nombre;
+  if (pRoles) pRoles.textContent = perfil.roles.join(' · ');
+  if (pOrg) pOrg.textContent = perfil.organizacion;
+
+  login.hidden = true;
+  portal.hidden = false;
+  mostrarEmpresa(datosDemoEmpresa);
+
+  const vistaFinal = (targetView && allowedTabs.has(targetView)) ? targetView : perfil.defaultView;
+  if (typeof switchTab === 'function') {
+    switchTab(vistaFinal);
+  }
+  window.lucide?.createIcons();
+}
+window.ingresarConRol = ingresarConRol;
+
 const demoBtn = document.getElementById('btn-demo-mode');
 if (demoBtn) {
-  demoBtn.addEventListener('click', () => {
-    allowedTabs.clear();
-    ['dashboard', 'dispositivos', 'estadisticas', 'alertas', 'mantenimiento', 'reportes', 'database'].forEach(v => allowedTabs.add('tab-' + v));
-    document.querySelectorAll('[data-view]').forEach(el => el.hidden = false);
-    document.querySelectorAll('.tab-content').forEach(section => section.hidden = false);
-    const pName = document.getElementById('profile-name');
-    const pRoles = document.getElementById('profile-roles');
-    const pOrg = document.getElementById('profile-org');
-    if (pName) pName.textContent = 'Daniel Sanabria (Demostración)';
-    if (pRoles) pRoles.textContent = 'ADMIN_EMPRESA · AUDITOR_AMBIENTAL';
-    if (pOrg) pOrg.textContent = 'Ecosistema Industrial OTech AirNet';
-    login.hidden = true;
-    portal.hidden = false;
-    mostrarEmpresa(datosDemoEmpresa);
-    if (typeof switchTab === 'function') switchTab('tab-dashboard');
-  });
+  demoBtn.addEventListener('click', () => ingresarConRol('super_admin', 'tab-dashboard'));
 }
 
 form.querySelector('button').disabled = false;

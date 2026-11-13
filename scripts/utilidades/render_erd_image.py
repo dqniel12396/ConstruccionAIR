@@ -15,9 +15,9 @@ CDP_PORT = 9333
 TEMP_DIR = r"C:\Users\danie\AppData\Local\Temp\edge_cdp_erd"
 os.makedirs(TEMP_DIR, exist_ok=True)
 
-HTML_PATH = os.path.abspath(r"ENTREGA_FINAL_OTECH_PLATAFORMA_WEB\diagrama_bases_datos_interactivo.html")
-PNG_PATH = os.path.abspath(r"ENTREGA_FINAL_OTECH_PLATAFORMA_WEB\diagrama_bases_datos_otech.png")
-SVG_PATH = os.path.abspath(r"ENTREGA_FINAL_OTECH_PLATAFORMA_WEB\diagrama_bases_datos_otech.svg")
+HTML_PATH = os.path.abspath(r"plataforma_web\diagrama_bases_datos_interactivo.html")
+PNG_PATH = os.path.abspath(r"plataforma_web\diagrama_bases_datos_otech.png")
+SVG_PATH = os.path.abspath(r"plataforma_web\diagrama_bases_datos_otech.svg")
 
 async def cdp_command(ws, req_id, method, params=None):
     msg = {"id": req_id, "method": method, "params": params or {}}
