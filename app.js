@@ -3128,10 +3128,11 @@ function setAppMode(mode) {
     if (dirLight) {
       dirLight.color.set(0xfffaed);
       dirLight.intensity = 1.6;
+      dirLight.castShadow = false; // Eliminar franjas de sombra y shadow acne en modo planta
     }
     if (ambientLight) {
       ambientLight.color.set(0xe0f2fe);
-      ambientLight.intensity = 0.85;
+      ambientLight.intensity = 0.95;
     }
 
     // Configurar cámara para vista de Planta (Nave completa)
@@ -3163,6 +3164,7 @@ function setAppMode(mode) {
     if (dirLight) {
       dirLight.color.set(0xfffaed);
       dirLight.intensity = 1.4;
+      dirLight.castShadow = true;
     }
     if (ambientLight) {
       ambientLight.color.set(0xddeeff);
@@ -4774,7 +4776,8 @@ function setupLights() {
   dirLight.shadow.camera.right = 160;
   dirLight.shadow.camera.top = 160;
   dirLight.shadow.camera.bottom = -160;
-  dirLight.shadow.bias = -0.0003;
+  dirLight.shadow.bias = 0.00005;
+  dirLight.shadow.normalBias = 0.05;
   scene.add(dirLight);
 
   // Studio Rim Light (Luz de Contorno Cian / Perfilado de Aristas de Producto)

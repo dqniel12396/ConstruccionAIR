@@ -1,5 +1,6 @@
 // =========================================================================
 // OTech AirNet - Sistema Cartográfico Geo-Espacial Interactivo (Bogotá & Sabana)
+// 100% Libre de API Keys / Sin Marcas de Agua (Powered by Esri ArcGIS & Leaflet)
 // Compatible con Supabase Auth (panel_empresa) y Modo Demostración Autónomo
 // =========================================================================
 
@@ -18,29 +19,29 @@ function getAQIInfo(variable, valor) {
     return { color: '#64748b', bg: 'rgba(100,116,139,0.2)', texto: '#94a3b8', etiqueta: 'Sin Datos', clase: 'aqi-nodata', nivel: 'N/A', advisory: 'Sin medición disponible en este momento.' };
   }
   if (variable === 'pm25') {
-    if (valor <= 12.0) return { color: '#10b981', bg: 'rgba(16,185,129,0.2)', texto: '#34d399', etiqueta: 'Buena', clase: 'aqi-good', nivel: 'Bajo Riesgo', advisory: 'Calidad del aire óptima para toda la población.' };
-    if (valor <= 35.4) return { color: '#eab308', bg: 'rgba(234,179,8,0.2)', texto: '#fde047', etiqueta: 'Aceptable / Moderada', clase: 'aqi-moderate', nivel: 'Riesgo Moderado', advisory: 'Calidad del aire aceptable. Personas sensibles deben limitar esfuerzo exterior prolongado.' };
-    if (valor <= 55.4) return { color: '#f97316', bg: 'rgba(249,115,22,0.2)', texto: '#fdba74', etiqueta: 'Dañina (Grupos Sensibles)', clase: 'aqi-sensitive', nivel: 'Alerta Preventiva', advisory: 'Niños, adultos mayores y personas con asma deben reducir actividades al aire libre.' };
-    if (valor <= 150.4) return { color: '#ef4444', bg: 'rgba(239,68,68,0.2)', texto: '#fca5a5', etiqueta: 'Dañina a la Salud', clase: 'aqi-unhealthy', nivel: 'Alerta Naranja', advisory: 'Efectos en la salud de toda la población. Suspender actividades físicas en exteriores.' };
-    return { color: '#8b5cf6', bg: 'rgba(139,92,246,0.2)', texto: '#d8b4fe', etiqueta: 'Peligrosa / Emergencia', clase: 'aqi-hazardous', nivel: 'Alerta Roja', advisory: 'Condición de emergencia ambiental. Permanecer en recintos con ventilación filtrada.' };
+    if (valor <= 12.0) return { color: '#10b981', bg: 'rgba(16,185,129,0.25)', texto: '#34d399', etiqueta: 'Buena', clase: 'aqi-good', nivel: 'Bajo Riesgo', advisory: 'Calidad del aire óptima para toda la población.' };
+    if (valor <= 35.4) return { color: '#eab308', bg: 'rgba(234,179,8,0.25)', texto: '#fde047', etiqueta: 'Aceptable / Moderada', clase: 'aqi-moderate', nivel: 'Riesgo Moderado', advisory: 'Calidad del aire aceptable. Personas sensibles deben limitar esfuerzo exterior prolongado.' };
+    if (valor <= 55.4) return { color: '#f97316', bg: 'rgba(249,115,22,0.25)', texto: '#fdba74', etiqueta: 'Dañina (Grupos Sensibles)', clase: 'aqi-sensitive', nivel: 'Alerta Preventiva', advisory: 'Niños, adultos mayores y personas con asma deben reducir actividades al aire libre.' };
+    if (valor <= 150.4) return { color: '#ef4444', bg: 'rgba(239,68,68,0.25)', texto: '#fca5a5', etiqueta: 'Dañina a la Salud', clase: 'aqi-unhealthy', nivel: 'Alerta Naranja', advisory: 'Efectos en la salud de toda la población. Suspender actividades físicas en exteriores.' };
+    return { color: '#8b5cf6', bg: 'rgba(139,92,246,0.25)', texto: '#d8b4fe', etiqueta: 'Peligrosa / Emergencia', clase: 'aqi-hazardous', nivel: 'Alerta Roja', advisory: 'Condición de emergencia ambiental. Permanecer en recintos con ventilación filtrada.' };
   }
   if (variable === 'pm10') {
-    if (valor <= 54) return { color: '#10b981', bg: 'rgba(16,185,129,0.2)', texto: '#34d399', etiqueta: 'Buena', clase: 'aqi-good', nivel: 'Bajo', advisory: 'Material particulado grueso dentro del rango seguro.' };
-    if (valor <= 154) return { color: '#eab308', bg: 'rgba(234,179,8,0.2)', texto: '#fde047', etiqueta: 'Aceptable', clase: 'aqi-moderate', nivel: 'Moderado', advisory: 'Concentración regular en áreas urbanas e industriales.' };
-    if (valor <= 254) return { color: '#f97316', bg: 'rgba(249,115,22,0.2)', texto: '#fdba74', etiqueta: 'Alerta Amarilla', clase: 'aqi-sensitive', nivel: 'Sensible', advisory: 'Concentración elevada de polvo y emisiones vehiculares.' };
-    return { color: '#ef4444', bg: 'rgba(239,68,68,0.2)', texto: '#fca5a5', etiqueta: 'Alerta Naranja', clase: 'aqi-unhealthy', nivel: 'Alto', advisory: 'Superación de límites permisibles de calidad del aire.' };
+    if (valor <= 54) return { color: '#10b981', bg: 'rgba(16,185,129,0.25)', texto: '#34d399', etiqueta: 'Buena', clase: 'aqi-good', nivel: 'Bajo', advisory: 'Material particulado grueso dentro del rango seguro.' };
+    if (valor <= 154) return { color: '#eab308', bg: 'rgba(234,179,8,0.25)', texto: '#fde047', etiqueta: 'Aceptable', clase: 'aqi-moderate', nivel: 'Moderado', advisory: 'Concentración regular en áreas urbanas e industriales.' };
+    if (valor <= 254) return { color: '#f97316', bg: 'rgba(249,115,22,0.25)', texto: '#fdba74', etiqueta: 'Alerta Amarilla', clase: 'aqi-sensitive', nivel: 'Sensible', advisory: 'Concentración elevada de polvo y emisiones vehiculares.' };
+    return { color: '#ef4444', bg: 'rgba(239,68,68,0.25)', texto: '#fca5a5', etiqueta: 'Alerta Naranja', clase: 'aqi-unhealthy', nivel: 'Alto', advisory: 'Superación de límites permisibles de calidad del aire.' };
   }
   if (variable === 'hr') {
-    if (valor < 40) return { color: '#f59e0b', bg: 'rgba(245,158,11,0.2)', texto: '#fbbf24', etiqueta: 'Ambiente Seco', clase: 'aqi-moderate', nivel: 'Baja Humedad', advisory: 'Condición seca en la sabana, favorable a la dispersión de polvo.' };
-    if (valor <= 75) return { color: '#06b6d4', bg: 'rgba(6,182,212,0.2)', texto: '#67e8f9', etiqueta: 'Humedad Confort', clase: 'aqi-good', nivel: 'Óptimo', advisory: 'Humedad relativa en rango normal de confort ambiental.' };
-    return { color: '#3b82f6', bg: 'rgba(59,130,246,0.2)', texto: '#93c5fd', etiqueta: 'Compensación κ-Köhler', clase: 'aqi-sensitive', nivel: 'Alta Humedad (>75%)', advisory: 'Compensación higroscópica activa: corrección matemática del crecimiento por vapor de agua.' };
+    if (valor < 40) return { color: '#f59e0b', bg: 'rgba(245,158,11,0.25)', texto: '#fbbf24', etiqueta: 'Ambiente Seco', clase: 'aqi-moderate', nivel: 'Baja Humedad', advisory: 'Condición seca en la sabana, favorable a la dispersión de polvo.' };
+    if (valor <= 75) return { color: '#06b6d4', bg: 'rgba(6,182,212,0.25)', texto: '#67e8f9', etiqueta: 'Humedad Confort', clase: 'aqi-good', nivel: 'Óptimo', advisory: 'Humedad relativa en rango normal de confort ambiental.' };
+    return { color: '#3b82f6', bg: 'rgba(59,130,246,0.25)', texto: '#93c5fd', etiqueta: 'Compensación κ-Köhler', clase: 'aqi-sensitive', nivel: 'Alta Humedad (>75%)', advisory: 'Compensación higroscópica activa: corrección matemática del crecimiento por vapor de agua.' };
   }
   if (variable === 'temp') {
-    if (valor < 14) return { color: '#38bdf8', bg: 'rgba(56,189,248,0.2)', texto: '#7dd3fc', etiqueta: 'Frío Sabana', clase: 'aqi-moderate', nivel: 'Baja Temp.', advisory: 'Temperatura fresca característica de la sabana de Bogotá.' };
-    if (valor <= 22) return { color: '#10b981', bg: 'rgba(16,185,129,0.2)', texto: '#34d399', etiqueta: 'Templado Confort', clase: 'aqi-good', nivel: 'Óptimo', advisory: 'Temperatura en rango ideal de operación metrológica.' };
-    return { color: '#f59e0b', bg: 'rgba(245,158,11,0.2)', texto: '#fbbf24', etiqueta: 'Cálido Urbano', clase: 'aqi-sensitive', nivel: 'Cálido', advisory: 'Isla de calor urbano o radiación solar intensa.' };
+    if (valor < 14) return { color: '#38bdf8', bg: 'rgba(56,189,248,0.25)', texto: '#7dd3fc', etiqueta: 'Frío Sabana', clase: 'aqi-moderate', nivel: 'Baja Temp.', advisory: 'Temperatura fresca característica de la sabana de Bogotá.' };
+    if (valor <= 22) return { color: '#10b981', bg: 'rgba(16,185,129,0.25)', texto: '#34d399', etiqueta: 'Templado Confort', clase: 'aqi-good', nivel: 'Óptimo', advisory: 'Temperatura en rango ideal de operación metrológica.' };
+    return { color: '#f59e0b', bg: 'rgba(245,158,11,0.25)', texto: '#fbbf24', etiqueta: 'Cálido Urbano', clase: 'aqi-sensitive', nivel: 'Cálido', advisory: 'Isla de calor urbano o radiación solar intensa.' };
   }
-  return { color: '#14b8a6', bg: 'rgba(20,184,166,0.2)', texto: '#5eead4', etiqueta: 'Medición Normal', clase: 'aqi-good', nivel: 'Estable', advisory: 'Lectura dentro de los parámetros de calibración.' };
+  return { color: '#14b8a6', bg: 'rgba(20,184,166,0.25)', texto: '#5eead4', etiqueta: 'Medición Normal', clase: 'aqi-good', nivel: 'Estable', advisory: 'Lectura dentro de los parámetros de calibración.' };
 }
 
 // Unidades por variable
@@ -52,7 +53,7 @@ function iniciarMapa(estacionesInput) {
   const contenedor = document.getElementById('map');
   if (!contenedor) return () => {};
 
-  // Limpiar contenedor previo si existía una instancia
+  // Limpiar contenedor previo si existía una instancia activa
   if (contenedor._leaflet_id && window.mapaActual) {
     try { window.mapaActual.remove(); } catch (e) {}
   }
@@ -60,48 +61,53 @@ function iniciarMapa(estacionesInput) {
   // Cobertura geográfica de Bogotá D.C. y la Sabana de Cundinamarca
   const coberturaSabana = [[4.38, -74.45], [5.05, -73.80]];
 
-  // 1. Instancia del Mapa Leaflet con límites elásticos y zoom suave
+  // 1. Instancia del Mapa Leaflet
   const mapa = L.map('map', {
     minZoom: 8,
     maxZoom: 18,
     maxBounds: [[4.20, -74.65], [5.25, -73.60]],
     maxBoundsViscosity: 0.85,
-    zoomControl: false // Lo agregaremos abajo con posición personalizada
+    zoomControl: false
   }).setView([4.67, -74.10], 11);
 
   window.mapaActual = mapa;
 
-  // Control de Zoom en posición superior derecha
+  // Control de Zoom superior derecho
   L.control.zoom({ position: 'topright' }).addTo(mapa);
 
-  // 2. Capas Base Cartográficas Reales (Tile Layers Reales)
-  // A) CartoDB Dark Matter (Tema Oscuro OTech de alta definición - Predeterminada)
-  const capaDarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19,
-    subdomains: 'abcd',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> · <a href="https://carto.com/attributions" target="_blank">CARTO</a> · OTech AirNet'
+  // 2. Capas Cartográficas Reales Oficiales (Esri ArcGIS Online - 100% Libres de API Key y sin marcas de agua)
+  
+  // A) Capa Oscura OTech (Esri World Dark Gray Base + Labels Reference)
+  const esriDarkBase = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 16,
+    attribution: 'Esri, HERE, Garmin, &copy; OpenStreetMap · OTech AirNet'
   });
+  const esriDarkRef = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 16,
+    pane: 'overlayPane',
+    opacity: 0.95
+  });
+  const capaOscuraOTech = L.layerGroup([esriDarkBase, esriDarkRef]);
 
-  // B) Esri World Imagery (Satélite Real de Alta Resolución)
-  const capaSatelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  // B) Capa Satélite Real HD (Esri World Imagery)
+  const capaSateliteHD = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 19,
     attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics · OTech GIS'
   });
 
-  // C) OpenStreetMap / CartoDB Voyager (Malla Vial y Calles Diurnas)
-  const capaCalles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  // C) Capa Calles & Malla Vial Diurna (Esri World Street Map)
+  const capaCallesVial = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
     maxZoom: 19,
-    subdomains: 'abcd',
-    attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+    attribution: 'Esri, DeLorme, NAVTEQ, USGS, Intermap &copy; OpenStreetMap'
   });
 
-  // Activar la capa oscura por defecto
-  capaDarkMatter.addTo(mapa);
+  // Activar la capa oscura por defecto (Cero marcas de agua, Cero API key)
+  capaOscuraOTech.addTo(mapa);
 
   // 3. Capas Superpuestas (Overlays)
-  // A) Localidades IDECA / CAR (El SVG vectorial original de Bogotá integrado como capa cartográfica)
+  // A) Localidades IDECA / CAR (El SVG vectorial original de Bogotá integrado como capa cartográfica transparente)
   const capaLocalidadesSVG = L.imageOverlay('bogota-base.svg', [[4.42, -74.43], [5.0, -73.83]], {
-    opacity: 0.35,
+    opacity: 0.40,
     alt: 'Límites de Localidades Bogotá (IDECA / CAR)',
     interactive: false
   });
@@ -119,9 +125,9 @@ function iniciarMapa(estacionesInput) {
 
   // 4. Selector de Capas (Layer Switcher Control)
   const capasBase = {
-    "🌙 Oscuro OTech (Dark)": capaDarkMatter,
-    "🛰️ Satélite Real HD": capaSatelite,
-    "🗺️ Calles & Malla Vial": capaCalles
+    "🌙 Oscuro OTech (Sin marcas)": capaOscuraOTech,
+    "🛰️ Satélite Real HD": capaSateliteHD,
+    "🗺️ Calles & Malla Vial": capaCallesVial
   };
 
   const capasSuperpuestas = {
