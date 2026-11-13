@@ -92,6 +92,7 @@
       <label for="password">Contraseña</label>
       <input id="password" name="password" type="password" autocomplete="current-password" required>
       <button type="submit" disabled>Ingresar</button>
+      <button type="button" id="btn-demo-mode" style="background:#1e293b; color:#2dd4bf; border: 1px solid #14b8a6; margin-top: 10px; width: 100%; padding: 10px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: all 0.2s ease;">🚀 Explorar en Modo Demostración</button>
       <p id="login-status" role="status" aria-live="polite">Conectando con el servicio de acceso…</p>
     </form>
   </main>
@@ -123,6 +124,10 @@
           <span id="profile-org"></span>
         </div>
       </div>
+      <a href="index.html" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-teal-400 text-teal-300 text-xs font-semibold transition shadow-inner">
+        <i data-lucide="box" class="w-4 h-4 text-teal-400"></i>
+        <span>Gemelo 3D</span>
+      </a>
 
       <!-- Métricas Rápidas & Perfil -->
       <div class="flex items-center gap-4">
