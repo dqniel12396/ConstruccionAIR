@@ -70,8 +70,13 @@ function mostrarSerie() {
 }
 function opciones(id,items) { el(id).replaceChildren(...items.map(([v,t])=>new Option(t,v))); }
 function variablesEstacion() {
-  const vars = new Set(datosEmpresa.serie.filter(v=>v.serial===el('equipo-serie').value).map(v=>v.variable));
-  opciones('variable-serie',[...vars].map(v=>[v,variables[v]??v]));
+  if (!datosEmpresa?.serie) return;
+  const currentStation = el('equipo-serie').value;
+  let matches = datosEmpresa.serie.filter(v => v.serial === currentStation);
+  if (!matches.length && datosEmpresa.serie.length) matches = datosEmpresa.serie;
+  const vars = new Set(matches.map(v => v.variable));
+  if (!vars.size) ['PM2_5', 'PM10', 'HUM', 'TEMP'].forEach(v => vars.add(v));
+  opciones('variable-serie', [...vars].map(v => [v, variables[v] ?? v]));
   mostrarSerie();
 }
 el('equipo-serie').onchange=variablesEstacion;

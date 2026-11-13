@@ -206,18 +206,21 @@
         <div>
           <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
             <i data-lucide="database" class="w-5 h-5 text-teal-400"></i>
-            Diagrama Entidad-Relación de la Base de Datos (PostgreSQL + TimescaleDB)
+            Diagrama Entidad-Relación de la Base de Datos (PostgreSQL 16 + TimescaleDB)
           </h2>
-          <p class="text-xs text-slate-400">Persistencia Multi-Tenant, Hiper-tablas de Telemetría (Series de Tiempo) y Trazabilidad QA/QC.</p>
+          <p class="text-xs text-slate-400">Arquitectura Multi-Tenant, Hiper-tablas de Telemetría Particionadas (Series de Tiempo) y Trazabilidad QA/QC.</p>
         </div>
-        <div class="flex items-center gap-3">
-          <a href="diagrama_bases_datos_otech.png" target="_blank" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-teal-500/20">
-            <i data-lucide="external-link" class="w-4 h-4"></i>
-            Abrir Imagen HD en Nueva Pestaña
+        <div class="flex items-center gap-2 flex-wrap">
+          <button type="button" onclick="zoomERD(1.2)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 text-xs border border-slate-700 font-mono transition">🔍 +</button>
+          <button type="button" onclick="zoomERD(0.8)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 text-xs border border-slate-700 font-mono transition">🔍 -</button>
+          <button type="button" onclick="resetZoomERD()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 font-mono transition">↺ Reset</button>
+          <a href="diagrama_bases_datos_otech.png" target="_blank" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-teal-500/20">
+            <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+            Abrir HD
           </a>
-          <a href="schema_database_otech.sql" download class="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 transition">
-            <i data-lucide="code" class="w-4 h-4"></i>
-            Descargar Script .SQL
+          <a href="schema_database_otech.sql" download class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 transition">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            Descargar .SQL
           </a>
         </div>
       </div>
@@ -225,11 +228,74 @@
       <!-- Visor de la Imagen con zoom/scroll -->
       <div class="gradient-card rounded-2xl p-4 overflow-hidden border border-slate-800 shadow-2xl">
         <div class="flex items-center justify-between pb-3 mb-3 border-b border-slate-800 text-xs text-slate-400 font-mono">
-          <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-teal-400"></span> Resolución Imagen: 3600 x 2400 px (Ultra HD 4K)</span>
-          <span class="text-teal-400">Haz clic sobre la imagen para verla en tamaño completo</span>
+          <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-teal-400"></span> Resolución de Render: 3600 x 2400 px (Ultra HD 4K) • 12 Entidades Relacionales</span>
+          <span class="text-teal-400">Haz clic o usa los botones de zoom para explorar las relaciones</span>
         </div>
-        <div class="w-full overflow-auto max-h-[750px] rounded-xl border border-slate-800/80 bg-[#070b12] p-2 flex justify-center">
-          <img src="diagrama_bases_datos_otech.png" alt="Diagrama Entidad Relacion Base de Datos OTech" class="w-full h-auto min-w-[1200px] rounded-lg shadow-2xl cursor-zoom-in" onclick="window.open('diagrama_bases_datos_otech.png', '_blank')">
+        <div id="erd-viewport" class="w-full overflow-auto max-h-[720px] rounded-xl border border-slate-800/80 bg-[#070b12] p-2 flex justify-center cursor-grab active:cursor-grabbing">
+          <img id="erd-image" src="diagrama_bases_datos_otech.png" alt="Diagrama Entidad Relacion Base de Datos OTech" class="w-full h-auto min-w-[1100px] rounded-lg shadow-2xl transition-transform duration-200 origin-top-left" onclick="window.open('diagrama_bases_datos_otech.png', '_blank')">
+        </div>
+      </div>
+
+      <!-- Diccionario de Módulos y Entidades -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+          <div class="flex items-center gap-2 text-teal-300 font-bold text-sm mb-2">
+            <i data-lucide="shield-check" class="w-4 h-4 text-teal-400"></i> 1. Multi-Tenant & RBAC
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <strong class="text-slate-200">organizaciones</strong>, <strong class="text-slate-200">usuarios</strong>, <strong class="text-slate-200">roles</strong>, <strong class="text-slate-200">usuario_roles</strong>.<br>
+            Aislamiento lógico estricto por NIT/UUID. Vinculación con <code class="text-teal-400">auth.users</code> de Supabase para autenticación criptográfica.
+          </p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+          <div class="flex items-center gap-2 text-teal-300 font-bold text-sm mb-2">
+            <i data-lucide="cpu" class="w-4 h-4 text-teal-400"></i> 2. Hardware IoT & Nodos
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <strong class="text-slate-200">sedes_operativas</strong>, <strong class="text-slate-200">dispositivos</strong>, <strong class="text-slate-200">sensores_instalados</strong>.<br>
+            Registro físico de cada microestación OTech con chip criptográfico ATECC608A, bandeja Hot-Swap (PMS5003/SPS30, BME280) y coordenadas geoespaciales.
+          </p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+          <div class="flex items-center gap-2 text-teal-300 font-bold text-sm mb-2">
+            <i data-lucide="activity" class="w-4 h-4 text-teal-400"></i> 3. Telemetría TimescaleDB
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <strong class="text-slate-200">mediciones_telemetria</strong>.<br>
+            Hipertabla particionada por periodos de 7 días. Almacena mediciones crudas (<code class="text-slate-300">valor_crudo</code>) y compensadas con modelo higroscópico Kappa-Köhler (<code class="text-teal-400">valor_compensado</code>).
+          </p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+          <div class="flex items-center gap-2 text-teal-300 font-bold text-sm mb-2">
+            <i data-lucide="bell-ring" class="w-4 h-4 text-teal-400"></i> 4. Motor de Reglas & Alertas
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <strong class="text-slate-200">reglas_alerta</strong>, <strong class="text-slate-200">incidentes_alertas</strong>.<br>
+            Evaluación continua contra umbrales de Res. 2254/2017 y EPA. Detección de picos, fases de contingencia ambiental y registro de mitigación.
+          </p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+          <div class="flex items-center gap-2 text-teal-300 font-bold text-sm mb-2">
+            <i data-lucide="wrench" class="w-4 h-4 text-teal-400"></i> 5. Gestión de Mantenimiento
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <strong class="text-slate-200">ordenes_mantenimiento</strong>, <strong class="text-slate-200">registros_calibracion</strong>.<br>
+            Órdenes de servicio asignadas a técnicos de campo autorizados. Registro de limpiezas de cabezal Stevenson, calibración span y cambio de sensores.
+          </p>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800">
+          <div class="flex items-center gap-2 text-teal-300 font-bold text-sm mb-2">
+            <i data-lucide="file-check-2" class="w-4 h-4 text-teal-400"></i> 6. Auditoría Ambiental & CAR
+          </div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            <strong class="text-slate-200">reportes_generados</strong>, <strong class="text-slate-200">trazabilidad_manufactura</strong>.<br>
+            Emisión de actas técnicas con firma y hash SHA-256 inmutable para auditorías de autoridades ambientales (SDA, CAR Cundinamarca, EPA).
+          </p>
         </div>
       </div>
     </section>
@@ -279,6 +345,19 @@
       // Re-render de iconos y gráficas si aplica
       window.lucide?.createIcons();
       if (tabId === "tab-estadisticas") mostrarSerie();
+    }
+
+    // Controles interactivos de Zoom para el Diagrama ERD
+    let erdScale = 1.0;
+    function zoomERD(factor) {
+      erdScale = Math.min(3.0, Math.max(0.5, erdScale * factor));
+      const img = document.getElementById('erd-image');
+      if (img) img.style.transform = `scale(${erdScale})`;
+    }
+    function resetZoomERD() {
+      erdScale = 1.0;
+      const img = document.getElementById('erd-image');
+      if (img) img.style.transform = 'scale(1.0)';
     }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js" onerror="document.getElementById('login-status').textContent='No se pudo cargar el servicio de acceso. Recarga la página.'"></script>

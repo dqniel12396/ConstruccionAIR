@@ -1208,15 +1208,30 @@ function buildPlant3D() {
     ptarBack.position.set(0, 0, -0.32);
     ptarSignGroup.add(ptarBack);
 
-    // 2 Columnas de Acero IPN con zócalos de concreto fijadas al suelo
+    // 2 Columnas de Acero IPN con zócalos de concreto fijadas al suelo soportando la base del cartel (Cero obstrucción de texto)
     for (let px of [-10, 10]) {
-      const postMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 10.0, 16), ptarFrameMat);
-      postMesh.position.set(px, -3.8, 0);
-      const basePlate = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.5, 1.8), ptarFrameMat);
-      basePlate.position.set(px, -8.0, 0);
+      // Pedestal de concreto armado nivelado con el suelo
       const concretePad = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.2, 2.4), new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.9 }));
-      concretePad.position.set(px, -7.5, 0);
-      ptarSignGroup.add(postMesh, basePlate, concretePad);
+      concretePad.position.set(px, -7.4, 0);
+
+      // Placa base de acero apernada al dado de concreto
+      const basePlate = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.3, 1.8), ptarFrameMat);
+      basePlate.position.set(px, -6.7, 0);
+
+      // Columna de acero estructural IPN (termina en la base inferior del cartel en Y = -3.7 sin traspasar la carátula)
+      const postMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 3.1, 16), ptarFrameMat);
+      postMesh.position.set(px, -5.2, 0);
+
+      // Brida / cartela superior de fijación soldada bajo el marco inferior
+      const topFlange = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.25, 1.2), ptarFrameMat);
+      topFlange.position.set(px, -3.7, 0);
+
+      // Refuerzo estructural posterior (Tirante hacia la viga trasera)
+      const rearBrace = new THREE.Mesh(new THREE.BoxGeometry(0.3, 2.8, 0.3), ptarFrameMat);
+      rearBrace.rotation.x = 0.45;
+      rearBrace.position.set(px, -4.5, -0.6);
+
+      ptarSignGroup.add(concretePad, basePlate, postMesh, topFlange, rearBrace);
     }
     ptarGroup.add(pumpHouse, ptarSignGroup);
 
