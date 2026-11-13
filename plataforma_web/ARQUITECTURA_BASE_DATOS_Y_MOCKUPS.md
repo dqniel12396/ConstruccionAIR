@@ -96,10 +96,9 @@ La interfaz ha sido diseñada siguiendo los estándares de diseño ergonómico i
 
 ## 4. Archivos Entregables en la Carpeta Final
 
-La entrega se encuentra completamente empaquetada en el directorio:
-`F:\Proyectos\Modelo de construccion de software\ENTREGA_FINAL_OTECH_PLATAFORMA_WEB\`
+La entrega se encuentra completamente empaquetada en los módulos unificados del repositorio (`plataforma_web/`, `gemelo_digital_3d/`, `database/` y `assets/vendor/`):
 
-1. **`index.html`**: Mockup interactivo funcional completo con estilos modernos, Chart.js y simulación activa.
+1. **`plataforma_web/portal.html`**: Portal multi-tenant completo offline-ready (7 módulos + control de acceso por roles + sincronización en vivo con el Gemelo 3D).
 2. **`schema_database_otech.sql`**: Script DDL de base de datos PostgreSQL + TimescaleDB con índices, tipos ENUM y particionamiento.
 3. **`ARQUITECTURA_BASE_DATOS_Y_MOCKUPS.md`**: Este documento técnico formal.
 4. **`ARQUITECTURA_BASE_DATOS_Y_MOCKUPS.pdf`**: Versión PDF editorial generada para impresión y entrega académica.

@@ -1,27 +1,13 @@
-# Ecosistema Web & Base de Datos OTech AirNet
+# OTech AirNet S.A.S. — Plataforma Web Multi-Tenant
 
-Esta carpeta contiene todos los artefactos de diseño y desarrollo de la **Base de Datos** y la **Plataforma Web Principal** de OTech S.A.S., derivados del documento de constitución final y de la etapa de análisis del ciclo de vida del software (SDLC).
+Plataforma web de monitoreo ambiental IoT y gestión operativa de estaciones **OTech AirNet** en Bogotá D.C., con funcionamiento completo **100% offline/local** y compatibilidad total con **Supabase PostgreSQL**.
 
-## Contenido del Paquete de Entrega:
+## Archivos principales
 
-1. **`index.html`**:
-   - Plataforma web interactiva completa (Mockup funcional autónomo).
-   - Incluye 6 módulos: Tablero Central y Mapa Geoespacial, Gestión de Aparatos IoT, Estadísticas y Analítica en Tiempo Real, Reglas y Alertas, Bitácora de Mantenimiento y Reportes de Auditoría.
-   - Cuenta con soporte multi-tenant, filtros interactivos, gráficos con Chart.js y simulación en vivo.
-
-2. **`ARQUITECTURA_BASE_DATOS_Y_MOCKUPS.pdf`**:
-   - Documento oficial en formato PDF con el diseño conceptual, modelo relacional, diccionario de datos y especificaciones de usuario.
-
-3. **`ARQUITECTURA_BASE_DATOS_Y_MOCKUPS.md`**:
-   - Fuente en Markdown del documento técnico con diagramas y tablas.
-
-4. **`schema_database_otech.sql`**:
-   - Script SQL ejecutable para PostgreSQL 16+ con extensiones TimescaleDB y UUID.
-   - Contiene la creación de tablas, relaciones foráneas, índices particionados y tipos de datos ENUM.
-
-5. **`ABRIR_PLATAFORMA_WEB.bat`**:
-   - Acceso directo ejecutable para iniciar la plataforma web en cualquier navegador con doble clic.
-
----
-*OTech S.A.S. - Monitoreo Inteligente de Calidad del Aire - Bogotá D.C., Colombia*
-
+- `portal.html`: Aplicación unificada multi-rol (7 módulos: Dashboard Geoespacial, Gestión IoT + Ficha Hardware `ATECC608A`, Analítica $\kappa$-Köhler & OMS, Reglas & Alertas, Mantenimiento Hot-Swap & Calibraciones, Reportes con firma `SHA-256` e impresión PDF, y Modelo ER).
+- `index.html`: Redirección automática hacia `portal.html`.
+- `airnet-core.js`: Núcleo compartido de física ($\kappa$-Köhler), cálculo AQI EPA, catálogo canónico de 8 estaciones, motor de evaluación de reglas y cómputo `SHA-256`.
+- `portal-auth.js`: Autenticación real con Supabase y acceso rápido en 1 clic por rol con fallback offline resiliente.
+- `panel-empresa.js` & `panel-empresa.css`: Lógica interactiva CRUD (RPCs + demo local) y recepción en vivo desde el Gemelo Digital 3D vía `BroadcastChannel('otech-airnet-sync')`.
+- `mapa-estaciones.html` & `mapa-estaciones.js` & `bogota-base.svg`: Mapa interactivo Leaflet con capa vectorial local automática ante ausencia de conexión a internet.
+- `ARQUITECTURA_BASE_DATOS_Y_MOCKUPS.md`: Documentación de arquitectura del esquema de base de datos y módulos de interfaz.

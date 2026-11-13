@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OTech AirNet Cloud - Plataforma de Gestión Ambiental y Dispositivos IoT</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Tailwind CSS Local (Offline-Ready) -->
+  <script src="../assets/vendor/tailwindcss.js"></script>
+  <!-- Chart.js Local -->
+  <script src="../assets/vendor/chart.umd.min.js"></script>
+  <!-- Lucide Icons Local -->
+  <script src="../assets/vendor/lucide.min.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -370,9 +370,9 @@
       <!-- Métricas Rápidas & Perfil -->
       <div class="flex items-center gap-4">
         <!-- Telemetría Status -->
-        <div class="hidden lg:flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-xs text-emerald-400 font-mono">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
-          <span>Datos en vivo</span>
+        <div id="telemetry-mode-pill" class="hidden lg:flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-xs text-emerald-400 font-mono">
+          <span id="telemetry-mode-dot" class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
+          <span id="telemetry-mode-label">Datos en vivo</span>
         </div>
 
         <!-- Botón Alertas -->
@@ -427,7 +427,7 @@
       <button data-view="tab-dispositivos" onclick="switchTab('tab-dispositivos')" id="btn-tab-dispositivos" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
         <i data-lucide="cpu" class="w-4 h-4"></i>
         <span>Gestión de Aparatos (IoT)</span>
-        <span class="px-1.5 py-0.2 rounded-md bg-slate-800 text-[10px] font-mono text-teal-400">18 Online</span>
+        <span id="badge-online-count" class="px-1.5 py-0.2 rounded-md bg-slate-800 text-[10px] font-mono text-teal-400">7/8 Online</span>
       </button>
 
       <button data-view="tab-estadisticas" onclick="switchTab('tab-estadisticas')" id="btn-tab-estadisticas" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
@@ -438,7 +438,7 @@
       <button data-view="tab-alertas" onclick="switchTab('tab-alertas')" id="btn-tab-alertas" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
         <i data-lucide="shield-alert" class="w-4 h-4"></i>
         <span>Reglas & Alertas</span>
-        <span class="px-1.5 py-0.2 rounded-md bg-rose-500/20 text-[10px] font-mono text-rose-300">2 Activas</span>
+        <span id="badge-alertas-count" class="px-1.5 py-0.2 rounded-md bg-rose-500/20 text-[10px] font-mono text-rose-300">2 Activas</span>
       </button>
 
       <button data-view="tab-mantenimiento" onclick="switchTab('tab-mantenimiento')" id="btn-tab-mantenimiento" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
@@ -465,11 +465,58 @@
     <!-- TAB 1: TABLERO CENTRAL & MAPA GEO-ESPACIAL -->
     <!-- ========================================== -->
     <section class="tab-content panel-empresa hidden" id="tab-dashboard"><h2>Resumen de la empresa</h2><div id="resumen" class="resumen"></div><div class="map-head"><h3>Mapa de estaciones</h3><label>Indicador <select id="indicador"><option value="pm25">PM2.5 (µg/m³)</option><option value="pm10">PM10 (µg/m³)</option><option value="hr">Humedad (%)</option><option value="temp">Temperatura (°C)</option></select></label></div><div id="map"></div><h3>Últimas lecturas por estación</h3><div class="tabla-empresa" id="lecturas"></div></section>
-<section class="tab-content panel-empresa hidden" id="tab-dispositivos"><h2>Inventario de dispositivos</h2><div class="filtros"><label>Buscar estación o sede <input id="buscar-equipo" type="search"></label><button id="exportar-equipos">Descargar CSV</button></div><div class="tabla-empresa" id="equipos"></div></section>
-<section class="tab-content panel-empresa hidden" id="tab-estadisticas"><h2>Histórico de telemetría</h2><div class="filtros"><label>Estación <select id="equipo-serie"></select></label><label>Variable <select id="variable-serie"></select></label><label>Periodo <select id="periodo"><option value="24">Últimas 24 h de la serie</option><option value="168">Últimos 7 días de la serie</option><option value="0">Toda la serie cargada</option></select></label></div><div style="height:260px"><canvas id="grafica"></canvas></div><div class="tabla-empresa" id="serie"></div></section>
-<section class="tab-content panel-empresa hidden" id="tab-alertas"><h2>Incidentes de alerta</h2><div class="tabla-empresa" id="alertas-empresa"></div></section>
-<section class="tab-content panel-empresa hidden" id="tab-mantenimiento"><h2>Órdenes de mantenimiento</h2><div class="tabla-empresa" id="ordenes-empresa"></div></section>
-<section class="tab-content panel-empresa hidden" id="tab-reportes"><h2>Reportes de la empresa</h2><div class="tabla-empresa" id="reportes-empresa"></div></section><section id="tab-database" class="tab-content hidden space-y-6">
+<section class="tab-content panel-empresa hidden" id="tab-dispositivos"><h2>Inventario de dispositivos</h2><div class="filtros"><label>Buscar estación o sede <input id="buscar-equipo" type="search" placeholder="Serial, estación o zona..."></label><button id="exportar-equipos">Descargar CSV</button></div><div class="tabla-empresa" id="equipos"></div></section>
+<section class="tab-content panel-empresa hidden" id="tab-estadisticas">
+  <h2>Histórico de telemetría &amp; Compensación κ-Köhler</h2>
+  <div class="filtros">
+    <label>Estación <select id="equipo-serie"></select></label>
+    <label>Variable <select id="variable-serie"></select></label>
+    <label>Periodo <select id="periodo"><option value="24">Últimas 24 h de la serie</option><option value="168">Últimos 7 días de la serie</option><option value="0">Toda la serie cargada</option></select></label>
+    <label class="flex items-center gap-2 cursor-pointer" style="flex-direction:row;align-items:center;padding-top:16px;"><input id="chk-comparar-kohler" type="checkbox" checked> Comparar Raw vs κ-Köhler</label>
+    <label class="flex items-center gap-2 cursor-pointer" style="flex-direction:row;align-items:center;padding-top:16px;"><input id="chk-limite-oms" type="checkbox" checked> Límite OMS / Res. 2254</label>
+  </div>
+  <div id="stats-kpi-bar"></div>
+  <div style="height:280px"><canvas id="grafica"></canvas></div>
+  <div class="tabla-empresa" id="serie"></div>
+</section>
+<section class="tab-content panel-empresa hidden" id="tab-alertas">
+  <h2>Incidentes de alerta</h2>
+  <div class="tabla-empresa" id="alertas-empresa"></div>
+  <h3 style="margin-top:22px;">Crear nueva regla de alerta</h3>
+  <form id="form-regla-alerta" class="form-otech">
+    <label>Estación<select id="regla-serial"></select></label>
+    <label>Variable<select id="regla-variable"><option value="PM2_5">PM2.5 (µg/m³)</option><option value="PM10">PM10 (µg/m³)</option><option value="HUM">Humedad Relativa (%)</option><option value="TEMP">Temperatura (°C)</option></select></label>
+    <label>Operador<select id="regla-operador"><option value="&gt;">&gt; Mayor que</option><option value="&gt;=">&gt;= Mayor o igual</option><option value="&lt;">&lt; Menor que</option><option value="&lt;=">&lt;= Menor o igual</option></select></label>
+    <label>Umbral<input id="regla-umbral" type="number" step="0.1" value="35" required></label>
+    <label>Severidad<select id="regla-severidad"><option value="INFORMATIVO">Informativo</option><option value="PREVENTIVO" selected>Preventivo</option><option value="ALERTA_FASE_1">Alerta Fase 1</option><option value="CONTINGENCIA_CRITICA">Contingencia Crítica</option></select></label>
+    <button type="submit" class="btn-accion-primary">+ Guardar Regla</button>
+  </form>
+  <h3>Reglas de umbral configuradas</h3>
+  <div class="tabla-empresa" id="reglas-empresa"></div>
+</section>
+<section class="tab-content panel-empresa hidden" id="tab-mantenimiento">
+  <h2>Órdenes de mantenimiento &amp; Hot-Swap</h2>
+  <form id="form-nueva-orden" class="form-otech">
+    <label>Estación<select id="orden-serial"></select></label>
+    <label>Tipo de intervención<select id="orden-tipo"><option value="HOT_SWAP_CARTUCHO">Hot-Swap Cartucho Óptico (≤ 2 min)</option><option value="CALIBRACION_OPTICA">Calibración Óptica en Sitio</option><option value="MANTENIMIENTO_PREVENTIVO">Mantenimiento Preventivo</option><option value="LIMPIEZA_IMPACTOR">Limpieza Impactor / Ciclón PM</option><option value="INSPECCION_BATERIA">Inspección Solar / LiFePO4</option></select></label>
+    <label>Fecha programada<input id="orden-fecha" type="datetime-local" required></label>
+    <label>Observaciones técnicas<input id="orden-obs" type="text" placeholder="Ej: Reemplazo de celda PMS5003 en sitio"></label>
+    <button type="submit" class="btn-accion-primary">+ Programar Orden</button>
+  </form>
+  <div class="tabla-empresa" id="ordenes-empresa"></div>
+  <h3 style="margin-top:22px;">Trazabilidad Metrológica &amp; Calibraciones</h3>
+  <div class="tabla-empresa" id="calibraciones-empresa"></div>
+</section>
+<section class="tab-content panel-empresa hidden" id="tab-reportes">
+  <h2>Reportes normativos &amp; Integridad SHA-256</h2>
+  <form id="form-generar-reporte" class="form-otech">
+    <label>Tipo de reporte<select id="rep-tipo"><option value="CUMPLIMIENTO_RES_2254">Cumplimiento Res. 2254 / OMS</option><option value="AUDITORIA_KAPPA_KOHLER">Auditoría Corrección κ-Köhler</option><option value="DISPONIBILIDAD_MENSUAL">Disponibilidad Mensual de Red</option><option value="METROL_TRAZABILIDAD">Certificado Trazabilidad Metrológica</option></select></label>
+    <label>Fecha inicio<input id="rep-inicio" type="date" required></label>
+    <label>Fecha fin<input id="rep-fin" type="date" required></label>
+    <button type="submit" class="btn-accion-primary">Generar Reporte Firmado</button>
+  </form>
+  <div class="tabla-empresa" id="reportes-empresa"></div>
+</section><section id="tab-database" class="tab-content hidden space-y-6">
       <div class="gradient-card rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
@@ -628,8 +675,45 @@
       if (img) img.style.transform = 'scale(1.0)';
     }
   </script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js" onerror="document.getElementById('login-status').textContent='No se pudo cargar el servicio de acceso. Recarga la página.'"></script>
-  <script src="leaflet/leaflet.js"></script><script src="mapa-estaciones.js"></script><script src="panel-empresa.js"></script><script src="portal-auth.js"></script>
+  <!-- Modal Ficha Técnica de Hardware & Autodiagnóstico (ATECC608A + Sensores) -->
+  <div id="modal-ficha-equipo" class="hidden" role="dialog" aria-modal="true" aria-labelledby="ficha-titulo">
+    <div class="modal-ficha-card">
+      <div class="flex items-start justify-between gap-4 border-b border-slate-700/70 pb-3 mb-4">
+        <div>
+          <span class="text-[11px] font-mono uppercase tracking-wider text-teal-400">Trazabilidad &amp; Seguridad Criptográfica Hardware</span>
+          <h3 id="ficha-titulo" class="text-lg font-bold text-white mt-0.5">Ficha Técnica de Estación</h3>
+        </div>
+        <button id="btn-cerrar-ficha" type="button" class="btn-accion-sm" aria-label="Cerrar ficha">✕ Cerrar</button>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs bg-slate-900/70 border border-slate-800 rounded-xl p-3 mb-4">
+        <div><span class="text-slate-400 block">Chip Criptográfico</span><span id="ficha-chip" class="font-mono text-teal-300 font-semibold">—</span></div>
+        <div><span class="text-slate-400 block">Modelo Hardware</span><span id="ficha-modelo" class="font-mono text-slate-200">—</span></div>
+        <div><span class="text-slate-400 block">Firmware Edge</span><span id="ficha-firmware" class="font-mono text-slate-200">—</span></div>
+        <div><span class="text-slate-400 block">Sistema Energético</span><span id="ficha-energia" class="font-mono text-slate-200">—</span></div>
+        <div><span class="text-slate-400 block">Telemetría / Red</span><span id="ficha-comunicacion" class="font-mono text-slate-200">—</span></div>
+        <div><span class="text-slate-400 block">Manufactura &amp; QA</span><span id="ficha-manufactura" class="font-mono text-slate-200">—</span></div>
+      </div>
+      <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-1">Sensores Instalados</h4>
+      <div class="overflow-x-auto border border-slate-800 rounded-xl mb-4">
+        <table id="ficha-sensores-table">
+          <thead>
+            <tr><th>Tipo / Canal</th><th>Referencia</th><th>Lote Fabricación</th><th>Estado</th><th>Última Calibración</th></tr>
+          </thead>
+          <tbody id="ficha-sensores-body"></tbody>
+        </table>
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800">
+        <button id="btn-autodiagnostico" type="button" class="btn-accion-primary">Ejecutar Autodiagnóstico Remoto</button>
+        <div id="ficha-diagnostico-res" class="text-xs font-mono text-emerald-300"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notificaciones operativas Toast -->
+  <div id="toast-otech" role="status" aria-live="polite"></div>
+
+  <script src="../assets/vendor/supabase.js" onerror="document.getElementById('login-status').textContent='Modo Offline Local Activo (sin servidor cloud).'"></script>
+  <script src="leaflet/leaflet.js"></script><script src="airnet-core.js"></script><script src="mapa-estaciones.js"></script><script src="panel-empresa.js"></script><script src="portal-auth.js"></script>
 </body>
 </html>
 

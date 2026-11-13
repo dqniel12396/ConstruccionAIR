@@ -550,3 +550,235 @@
   background-color: #14b8a6 !important;
   color: #042f2e !important;
 }
+
+/* -------------------------------------------------------------------------
+   BADGES DE ESTADO, ACCIONES OPERATIVAS, MODAL HARDWARE & TOAST (V2)
+   ------------------------------------------------------------------------- */
+.badge-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.badge-ok {
+  background: rgba(16, 185, 129, 0.14);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.badge-warn {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.badge-danger {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.38);
+}
+
+.btn-accion-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  background: #1e293b;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.btn-accion-sm:hover {
+  background: #334155;
+  border-color: #2dd4bf;
+  color: #2dd4bf;
+}
+
+.btn-accion-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 9px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  color: #042f2e;
+  border: 1px solid rgba(45, 212, 191, 0.5);
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(20, 184, 166, 0.22);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-accion-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(20, 184, 166, 0.35);
+}
+
+.panel-empresa .form-otech {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  align-items: end;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(51, 65, 85, 0.7);
+  border-radius: 12px;
+  padding: 14px;
+  margin: 10px 0 16px;
+}
+
+.panel-empresa .form-otech label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.panel-empresa .form-otech input,
+.panel-empresa .form-otech select {
+  background: #0b1220;
+  border: 1px solid #334155;
+  color: #f1f5f9;
+  border-radius: 8px;
+  padding: 7px 10px;
+  font-size: 0.8rem;
+}
+
+.panel-empresa .form-otech input:focus,
+.panel-empresa .form-otech select:focus {
+  outline: none;
+  border-color: #14b8a6;
+}
+
+#stats-kpi-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0 14px;
+}
+
+.stats-kpi-pill {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid #1e293b;
+  border-radius: 9px;
+  padding: 7px 12px;
+  font-size: 0.75rem;
+  color: #cbd5e1;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.stats-kpi-pill strong {
+  color: #2dd4bf;
+}
+
+/* Modal Ficha Técnica de Hardware (ATECC608A + Sensores) */
+#modal-ficha-equipo {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(3, 7, 18, 0.82);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+#modal-ficha-equipo.hidden {
+  display: none !important;
+}
+
+.modal-ficha-card {
+  width: 100%;
+  max-width: 780px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #0c1424;
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  border-radius: 16px;
+  padding: 22px;
+  color: #e2e8f0;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+}
+
+#ficha-sensores-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  margin-top: 8px;
+}
+
+#ficha-sensores-table th,
+#ficha-sensores-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.65);
+}
+
+#ficha-sensores-table th {
+  color: #94a3b8;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(15, 23, 42, 0.8);
+}
+
+/* Toast Notifications */
+#toast-otech {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 150;
+  max-width: 360px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1px solid rgba(45, 212, 191, 0.45);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+#toast-otech.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#toast-otech.toast-ok {
+  border-color: rgba(16, 185, 129, 0.6);
+  background: #06281e;
+}
+
+#toast-otech.toast-warn {
+  border-color: rgba(245, 158, 11, 0.6);
+  background: #2b1d07;
+}
+
+#toast-otech.toast-err {
+  border-color: rgba(244, 63, 94, 0.65);
+  background: #2d0b16;
+}

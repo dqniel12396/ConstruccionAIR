@@ -4,44 +4,29 @@
 // Compatible con Supabase Auth (panel_empresa) y Modo Demostración Autónomo
 // =========================================================================
 
-// Catálogo de estaciones de referencia de la Red de Monitoreo OTech
-const estacionesDemo = [
-  { nombre: 'Corferias - Pabellón Innovación', id: 'OT-CORF-01', posicion: [4.630, -74.091], pm25: 12.3, pm10: 24.1, hr: 68.2, temp: 18.4, estado: 'OPERATIVO_ONLINE', bateria: 98 },
-  { nombre: 'Zona Franca - Parque Industrial', id: 'OT-INDU-02', posicion: [4.677, -74.161], pm25: 36.8, pm10: 55.6, hr: 79.5, temp: 17.1, estado: 'OPERATIVO_ONLINE', bateria: 92 },
-  { nombre: 'Terminal Carga - El Dorado', id: 'OT-AERO-03', posicion: [4.701, -74.146], pm25: 10.9, pm10: 21.4, hr: 65.0, temp: 19.0, estado: 'OPERATIVO_ONLINE', bateria: 100 },
-  { nombre: 'Portal Sur - TransMilenio Autopista', id: 'OT-MOVI-04', posicion: [4.596, -74.170], pm25: 58.2, pm10: 83.5, hr: 62.1, temp: 21.0, estado: 'OPERATIVO_ONLINE', bateria: 85 },
-  { nombre: 'Sopó - Cuenca Sabana Norte', id: 'OT-ALPI-05', posicion: [4.909, -73.943], pm25: 8.4, pm10: 16.2, hr: 65.0, temp: 19.0, estado: 'OPERATIVO_ONLINE', bateria: 95 }
-];
+// Catálogo de estaciones (unificado desde airnet-core.js si está disponible)
+const estacionesDemo = (window.OTechCore?.ESTACIONES_BASE_OTECH || [
+  { serial: 'OT-CORF-01', sede: 'Corferias - Pabellón Innovación', lat: 4.630, lon: -74.091, estado: 'OPERATIVO_ONLINE', bateria: 98, base: { pm25: 12.3, pm10: 24.1, hum: 68.2, temp: 18.4 } },
+  { serial: 'OT-INDU-02', sede: 'Zona Franca - Parque Industrial', lat: 4.677, lon: -74.161, estado: 'ADVERTENCIA_MODERADA', bateria: 92, base: { pm25: 36.8, pm10: 55.6, hum: 79.5, temp: 17.1 } },
+  { serial: 'OT-AERO-03', sede: 'Terminal Carga - El Dorado', lat: 4.701, lon: -74.146, estado: 'OPERATIVO_ONLINE', bateria: 100, base: { pm25: 10.9, pm10: 21.4, hum: 65.0, temp: 19.0 } },
+  { serial: 'OT-MOVI-04', sede: 'Portal Sur - TransMilenio Autopista', lat: 4.596, lon: -74.170, estado: 'ALERTA_CRITICA', bateria: 85, base: { pm25: 58.2, pm10: 83.5, hum: 62.1, temp: 21.0 } },
+  { serial: 'OT-ALPI-05', sede: 'Sopó - Cuenca Sabana Norte', lat: 4.909, lon: -73.943, estado: 'OPERATIVO_ONLINE', bateria: 95, base: { pm25: 8.4, pm10: 16.2, hum: 65.0, temp: 19.0 } }
+]).map(e => ({
+  nombre: e.sede,
+  id: e.serial,
+  posicion: [e.lat, e.lon],
+  pm25: e.base.pm25,
+  pm10: e.base.pm10,
+  hr: e.base.hum,
+  temp: e.base.temp,
+  estado: e.estado,
+  bateria: e.bateria
+}));
 
-// Cálculo de Índice de Calidad del Aire (ICA Bogotá / Norma Resolución 2254 de 2017 & EPA)
+// Cálculo de Índice de Calidad del Aire (unificado desde airnet-core.js)
 function getAQIInfo(variable, valor) {
-  if (valor == null || isNaN(valor)) {
-    return { color: '#64748b', bg: 'rgba(100,116,139,0.2)', texto: '#94a3b8', etiqueta: 'Sin Datos', clase: 'aqi-nodata', nivel: 'N/A', advisory: 'Sin medición disponible en este momento.' };
-  }
-  if (variable === 'pm25') {
-    if (valor <= 12.0) return { color: '#10b981', bg: 'rgba(16,185,129,0.25)', texto: '#34d399', etiqueta: 'Buena', clase: 'aqi-good', nivel: 'Bajo Riesgo', advisory: 'Calidad del aire óptima para toda la población.' };
-    if (valor <= 35.4) return { color: '#eab308', bg: 'rgba(234,179,8,0.25)', texto: '#fde047', etiqueta: 'Aceptable / Moderada', clase: 'aqi-moderate', nivel: 'Riesgo Moderado', advisory: 'Calidad del aire aceptable. Personas sensibles deben limitar esfuerzo exterior prolongado.' };
-    if (valor <= 55.4) return { color: '#f97316', bg: 'rgba(249,115,22,0.25)', texto: '#fdba74', etiqueta: 'Dañina (Grupos Sensibles)', clase: 'aqi-sensitive', nivel: 'Alerta Preventiva', advisory: 'Niños, adultos mayores y personas con asma deben reducir actividades al aire libre.' };
-    if (valor <= 150.4) return { color: '#ef4444', bg: 'rgba(239,68,68,0.25)', texto: '#fca5a5', etiqueta: 'Dañina a la Salud', clase: 'aqi-unhealthy', nivel: 'Alerta Naranja', advisory: 'Efectos en la salud de toda la población. Suspender actividades físicas en exteriores.' };
-    return { color: '#8b5cf6', bg: 'rgba(139,92,246,0.25)', texto: '#d8b4fe', etiqueta: 'Peligrosa / Emergencia', clase: 'aqi-hazardous', nivel: 'Alerta Roja', advisory: 'Condición de emergencia ambiental. Permanecer en recintos con ventilación filtrada.' };
-  }
-  if (variable === 'pm10') {
-    if (valor <= 54) return { color: '#10b981', bg: 'rgba(16,185,129,0.25)', texto: '#34d399', etiqueta: 'Buena', clase: 'aqi-good', nivel: 'Bajo', advisory: 'Material particulado grueso dentro del rango seguro.' };
-    if (valor <= 154) return { color: '#eab308', bg: 'rgba(234,179,8,0.25)', texto: '#fde047', etiqueta: 'Aceptable', clase: 'aqi-moderate', nivel: 'Moderado', advisory: 'Concentración regular en áreas urbanas e industriales.' };
-    if (valor <= 254) return { color: '#f97316', bg: 'rgba(249,115,22,0.25)', texto: '#fdba74', etiqueta: 'Alerta Amarilla', clase: 'aqi-sensitive', nivel: 'Sensible', advisory: 'Concentración elevada de polvo y emisiones vehiculares.' };
-    return { color: '#ef4444', bg: 'rgba(239,68,68,0.25)', texto: '#fca5a5', etiqueta: 'Alerta Naranja', clase: 'aqi-unhealthy', nivel: 'Alto', advisory: 'Superación de límites permisibles de calidad del aire.' };
-  }
-  if (variable === 'hr') {
-    if (valor < 40) return { color: '#f59e0b', bg: 'rgba(245,158,11,0.25)', texto: '#fbbf24', etiqueta: 'Ambiente Seco', clase: 'aqi-moderate', nivel: 'Baja Humedad', advisory: 'Condición seca en la sabana, favorable a la dispersión de polvo.' };
-    if (valor <= 75) return { color: '#06b6d4', bg: 'rgba(6,182,212,0.25)', texto: '#67e8f9', etiqueta: 'Humedad Confort', clase: 'aqi-good', nivel: 'Óptimo', advisory: 'Humedad relativa en rango normal de confort ambiental.' };
-    return { color: '#3b82f6', bg: 'rgba(59,130,246,0.25)', texto: '#93c5fd', etiqueta: 'Compensación κ-Köhler', clase: 'aqi-sensitive', nivel: 'Alta Humedad (>75%)', advisory: 'Compensación higroscópica activa: corrección matemática del crecimiento por vapor de agua.' };
-  }
-  if (variable === 'temp') {
-    if (valor < 14) return { color: '#38bdf8', bg: 'rgba(56,189,248,0.25)', texto: '#7dd3fc', etiqueta: 'Frío Sabana', clase: 'aqi-moderate', nivel: 'Baja Temp.', advisory: 'Temperatura fresca característica de la sabana de Bogotá.' };
-    if (valor <= 22) return { color: '#10b981', bg: 'rgba(16,185,129,0.25)', texto: '#34d399', etiqueta: 'Templado Confort', clase: 'aqi-good', nivel: 'Óptimo', advisory: 'Temperatura en rango ideal de operación metrológica.' };
-    return { color: '#f59e0b', bg: 'rgba(245,158,11,0.25)', texto: '#fbbf24', etiqueta: 'Cálido Urbano', clase: 'aqi-sensitive', nivel: 'Cálido', advisory: 'Isla de calor urbano o radiación solar intensa.' };
-  }
-  return { color: '#14b8a6', bg: 'rgba(20,184,166,0.25)', texto: '#5eead4', etiqueta: 'Medición Normal', clase: 'aqi-good', nivel: 'Estable', advisory: 'Lectura dentro de los parámetros de calibración.' };
+  if (window.OTechCore?.getAQIInfo) return window.OTechCore.getAQIInfo(variable, valor);
+  return { color: '#14b8a6', bg: 'rgba(20,184,166,0.25)', texto: '#5eead4', etiqueta: 'Normal', clase: 'aqi-good', nivel: 'Estable', advisory: 'Lectura operativa.' };
 }
 
 // Unidades por variable
@@ -101,6 +86,23 @@ function iniciarMapa(estacionesInput) {
     attribution: 'Esri, DeLorme, NAVTEQ, USGS, Intermap &copy; OpenStreetMap'
   });
 
+  // D) Capa Offline Vectorial Local (Funciona sin Internet usando bogota-base.svg)
+  const capaVectorOffline = L.imageOverlay('bogota-base.svg', [[4.42, -74.43], [5.0, -73.83]], {
+    opacity: 0.92,
+    alt: 'Mapa Vectorial Local Bogotá (Offline)',
+    interactive: false
+  });
+
+  // Fallback automático si no hay conexión a internet para descargar tiles Esri
+  let erroresTiles = 0;
+  esriDarkBase.on('tileerror', () => {
+    erroresTiles++;
+    if (erroresTiles >= 3 && !mapa.hasLayer(capaVectorOffline)) {
+      capaVectorOffline.addTo(mapa);
+      capaLocalidadesSVG.setOpacity(0.85);
+    }
+  });
+
   // Activar la capa oscura por defecto (Cero marcas de agua, Cero API key)
   capaOscuraOTech.addTo(mapa);
 
@@ -127,7 +129,8 @@ function iniciarMapa(estacionesInput) {
   const capasBase = {
     "🌙 Oscuro OTech (Sin marcas)": capaOscuraOTech,
     "🛰️ Satélite Real HD": capaSateliteHD,
-    "🗺️ Calles & Malla Vial": capaCallesVial
+    "🗺️ Calles & Malla Vial": capaCallesVial,
+    "🧭 Vector Local (Offline)": capaVectorOffline
   };
 
   const capasSuperpuestas = {
@@ -378,8 +381,20 @@ function iniciarMapa(estacionesInput) {
   // Primera ejecución de renderizado
   actualizarMapa();
 
+  // Permite actualizar en caliente las lecturas de una estación en el mapa
+  window.refrescarEstacionMapa = function(serial, nuevasLecturas) {
+    const target = estaciones.find(e => e.id === serial);
+    if (!target || !nuevasLecturas) return;
+    if (nuevasLecturas.pm25 != null) target.pm25 = nuevasLecturas.pm25;
+    if (nuevasLecturas.pm10 != null) target.pm10 = nuevasLecturas.pm10;
+    if (nuevasLecturas.hr != null) target.hr = nuevasLecturas.hr;
+    if (nuevasLecturas.temp != null) target.temp = nuevasLecturas.temp;
+    actualizarMapa();
+  };
+
   // Función de Cierre / Limpieza
   return () => {
+    window.refrescarEstacionMapa = null;
     observer.disconnect();
     if (selector) selector.removeEventListener('change', actualizarMapa);
     try { mapa.remove(); } catch (e) {}
@@ -389,7 +404,18 @@ function iniciarMapa(estacionesInput) {
 // Inicialización Automática en la página independiente (mapa-estaciones.html)
 if (!document.getElementById('portal')) {
   if (window.L) {
-    window.addEventListener('DOMContentLoaded', () => iniciarMapa(estacionesDemo));
+    window.addEventListener('DOMContentLoaded', () => {
+      iniciarMapa(estacionesDemo);
+      if (typeof BroadcastChannel !== 'undefined') {
+        const ch = new BroadcastChannel('otech-airnet-sync');
+        ch.onmessage = ev => {
+          const msg = ev.data;
+          if (msg?.type === 'telemetry_3d' && window.refrescarEstacionMapa) {
+            window.refrescarEstacionMapa(msg.serial || 'OT-CORF-01', msg);
+          }
+        };
+      }
+    });
   } else {
     const elMap = document.getElementById('map');
     if (elMap) elMap.textContent = 'Cargando motor geoespacial Leaflet...';

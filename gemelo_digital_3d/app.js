@@ -5079,55 +5079,123 @@ function createSolarCellTexture() {
   return texture;
 }
 
+var telemetry3dPhase = 0;
+var otechBroadcastChannel = null;
+
+function generarLecturaSimulada3D(stepDelta) {
+  const weather = (typeof state !== 'undefined' && state.currentWeather) ? state.currentWeather : 'sun';
+  const presets = {
+    sun:   { pm25Raw: 14.6, hr: 58.2, temp: 20.4, bat: 98 },
+    rain:  { pm25Raw: 18.4, hr: 89.5, temp: 13.6, bat: 84 },
+    night: { pm25Raw: 23.5, hr: 81.0, temp: 11.2, bat: 79 },
+    smog:  { pm25Raw: 66.8, hr: 72.0, temp: 22.8, bat: 91 }
+  };
+  const base = presets[weather] || presets.sun;
+  telemetry3dPhase += (stepDelta || 0);
+
+  const pm25Crudo = Number(Math.max(4, base.pm25Raw + Math.sin(telemetry3dPhase) * 1.9).toFixed(1));
+  const hr = Number(Math.min(99, Math.max(25, base.hr + Math.cos(telemetry3dPhase * 0.7) * 2.1)).toFixed(1));
+  const temp = Number((base.temp + Math.sin(telemetry3dPhase * 0.5) * 0.4).toFixed(1));
+  const core = (typeof window !== 'undefined' && window.OTechCore) ? window.OTechCore : null;
+  const pm25 = (core && typeof core.aplicarKappaKohler === 'function')
+    ? Number(core.aplicarKappaKohler(pm25Crudo, hr).toFixed(1))
+    : pm25Crudo;
+  const pm10Crudo = Number((pm25Crudo * 1.82 + 4.0).toFixed(1));
+  const pm10 = (core && typeof core.aplicarKappaKohler === 'function')
+    ? Number(core.aplicarKappaKohler(pm10Crudo, hr).toFixed(1))
+    : pm10Crudo;
+  const aqi = (core && typeof core.calcularAQI_PM25 === 'function')
+    ? core.calcularAQI_PM25(pm25)
+    : Math.round(pm25 * 2.6);
+  const aqiInfo = (core && typeof core.getAQIInfo === 'function')
+    ? core.getAQIInfo('pm25', pm25)
+    : { etiqueta: aqi <= 50 ? 'Buena' : aqi <= 100 ? 'Moderada' : 'Dañina', color: aqi <= 50 ? '#10b981' : aqi <= 100 ? '#f59e0b' : '#ef4444' };
+  const categoria = aqi <= 50 ? 'BUENO' : aqi <= 100 ? 'MODERADO' : aqi <= 150 ? 'SENSIBLE' : 'ALERTA AQI';
+  const defaultSerial = (core && Array.isArray(core.ESTACIONES_BASE_OTECH) && core.ESTACIONES_BASE_OTECH[0])
+    ? core.ESTACIONES_BASE_OTECH[0].serial
+    : 'OT-CORF-01';
+
+  return {
+    serial: defaultSerial,
+    weather,
+    pm25,
+    pm25Crudo,
+    pm10,
+    pm10Crudo,
+    hr,
+    temp,
+    bat: base.bat,
+    aqi,
+    aqiColor: aqiInfo.color,
+    categoria,
+    kohlerActivo: hr > 75,
+    fecha: new Date().toISOString()
+  };
+}
+
+function drawOLEDTelemetry(data) {
+  if (typeof window === 'undefined' || !window.oledCanvas || !window.oledCtx || !window.oledCanvasTexture) return;
+  const ctx = window.oledCtx;
+  const d = data || generarLecturaSimulada3D(0);
+
+  // Fondo OLED negro profundo
+  ctx.fillStyle = '#030712';
+  ctx.fillRect(0, 0, 512, 256);
+
+  // Marco perimetral reactivo al AQI
+  ctx.strokeStyle = d.aqiColor || '#0d9488';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(6, 6, 500, 244);
+
+  // Encabezado
+  ctx.fillStyle = '#2dd4bf';
+  ctx.font = 'bold 24px "JetBrains Mono", monospace';
+  ctx.fillText('OTech AirNet OS v2.4', 22, 42);
+  ctx.fillStyle = d.kohlerActivo ? '#fbbf24' : '#38bdf8';
+  ctx.font = 'bold 15px "JetBrains Mono", monospace';
+  ctx.fillText(d.kohlerActivo ? '[κ-Köhler ON]' : '[κ-Köhler OK]', 358, 40);
+
+  // Línea divisoria
+  ctx.strokeStyle = 'rgba(45, 212, 191, 0.5)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(22, 54); ctx.lineTo(490, 54); ctx.stroke();
+
+  // Métricas ambientales en vivo
+  ctx.fillStyle = '#f8fafc';
+  ctx.font = 'bold 25px "JetBrains Mono", monospace';
+  ctx.fillText(`PM2.5: ${d.pm25.toFixed(1)} µg/m³`, 22, 100);
+  ctx.fillText(`PM10 : ${d.pm10.toFixed(1)} µg/m³`, 22, 138);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'bold 21px "JetBrains Mono", monospace';
+  ctx.fillText(`HR: ${d.hr.toFixed(1)}%  |  T: ${d.temp.toFixed(1)}°C`, 22, 178);
+
+  // Footer status bar
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 19px "JetBrains Mono", monospace';
+  ctx.fillText(`● LoRaWAN OK  |  BAT: ${d.bat}% [⚡]`, 22, 224);
+
+  // Widget AQI lateral
+  ctx.fillStyle = d.aqiColor || '#10b981';
+  ctx.font = 'bold 34px "JetBrains Mono", monospace';
+  ctx.fillText(`AQI: ${d.aqi}`, 332, 112);
+  ctx.font = 'bold 17px "JetBrains Mono", monospace';
+  ctx.fillText(`[ ${d.categoria} ]`, 332, 144);
+
+  window.oledCanvasTexture.needsUpdate = true;
+}
+
 function createOLEDTexture() {
   const canvas = document.createElement('canvas');
   canvas.width = 512;
   canvas.height = 256;
   const ctx = canvas.getContext('2d');
 
-  // Fondo OLED negro profundo
-  ctx.fillStyle = '#030712';
-  ctx.fillRect(0, 0, 512, 256);
-
-  // Marco perimetral cian
-  ctx.strokeStyle = '#0d9488';
-  ctx.lineWidth = 4;
-  ctx.strokeRect(6, 6, 500, 244);
-
-  // Encabezado
-  ctx.fillStyle = '#2dd4bf';
-  ctx.font = 'bold 28px "JetBrains Mono", monospace';
-  ctx.fillText('OTech AirNet OS v2.4', 24, 46);
-
-  // Línea divisoria
-  ctx.strokeStyle = 'rgba(45, 212, 191, 0.5)';
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(24, 58); ctx.lineTo(488, 58); ctx.stroke();
-
-  // Métricas ambientales
-  ctx.fillStyle = '#f8fafc';
-  ctx.font = 'bold 26px "JetBrains Mono", monospace';
-  ctx.fillText('PM2.5: 14.8 µg/m³', 24, 104);
-  ctx.fillText('PM10 : 28.4 µg/m³', 24, 142);
-
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = 'bold 22px "JetBrains Mono", monospace';
-  ctx.fillText('HR: 68.2%  |  T: 18.4°C', 24, 180);
-
-  // Footer status bar
-  ctx.fillStyle = '#38bdf8';
-  ctx.font = 'bold 21px "JetBrains Mono", monospace';
-  ctx.fillText('● LoRaWAN OK  |  BAT: 98% [⚡]', 24, 226);
-
-  // Widget AQI lateral
-  ctx.fillStyle = '#10b981';
-  ctx.font = 'bold 36px "JetBrains Mono", monospace';
-  ctx.fillText('AQI: 42', 330, 115);
-  ctx.font = 'bold 18px "JetBrains Mono", monospace';
-  ctx.fillText('[ BUENO ]', 335, 145);
-
   const texture = new THREE.CanvasTexture(canvas);
+  window.oledCanvas = canvas;
+  window.oledCtx = ctx;
   window.oledCanvasTexture = texture;
+  drawOLEDTelemetry(generarLecturaSimulada3D(0));
   return texture;
 }
 
@@ -6199,6 +6267,49 @@ function toggleXRay(enabled) {
   }
 }
 
+function emitirTelemetria3D(force) {
+  if (typeof window === 'undefined') return;
+  const data = generarLecturaSimulada3D(force ? 0.08 : 0.42);
+  drawOLEDTelemetry(data);
+
+  const hudText = document.getElementById('hud-live-telemetry-text');
+  const hudBadge = document.getElementById('hud-live-telemetry-badge');
+  if (hudText) {
+    hudText.textContent = `PM2.5 ${data.pm25.toFixed(1)} µg/m³ · HR ${data.hr.toFixed(0)}% · AQI ${data.aqi} (${data.categoria}) · Sync Web`;
+  }
+  if (hudBadge) {
+    hudBadge.style.borderColor = data.aqiColor || 'rgba(45,212,191,0.35)';
+    hudBadge.style.color = data.aqiColor || '#5eead4';
+  }
+
+  const payload = {
+    type: 'telemetry_3d',
+    serial: data.serial,
+    weather: data.weather,
+    pm25: data.pm25,
+    pm25Crudo: data.pm25Crudo,
+    pm10: data.pm10,
+    pm10Crudo: data.pm10Crudo,
+    hr: data.hr,
+    temp: data.temp,
+    aqi: data.aqi,
+    fecha: data.fecha
+  };
+
+  try {
+    if (!otechBroadcastChannel && typeof BroadcastChannel !== 'undefined') {
+      otechBroadcastChannel = new BroadcastChannel('otech-airnet-sync');
+    }
+    if (otechBroadcastChannel) {
+      otechBroadcastChannel.postMessage(payload);
+    }
+  } catch (e) {}
+
+  try {
+    localStorage.setItem('otech_3d_live_telemetry', JSON.stringify(payload));
+  } catch (e) {}
+}
+
 // Weather Simulation Switcher
 function setWeather(mode) {
   state.currentWeather = mode;
@@ -6208,33 +6319,47 @@ function setWeather(mode) {
 
   if (mode === 'sun') {
     scene.background.set(0x0a0e17);
+    if (scene.fog) scene.fog.color.set(0x0a0e17);
     dirLight.color.set(0xfffaed);
     dirLight.intensity = 1.5;
     ambientLight.color.set(0xddeeff);
     ambientLight.intensity = 0.7;
-    rainParticles.visible = false;
-    materialsMap.ledRing.color.set(0x0ea5e9);
-    ledRingLight.color.set(0x0ea5e9);
+    if (rainParticles) rainParticles.visible = false;
+    if (materialsMap.ledRing) materialsMap.ledRing.color.set(0x0ea5e9);
+    if (ledRingLight) { ledRingLight.color.set(0x0ea5e9); ledRingLight.intensity = 1.6; }
   } else if (mode === 'rain') {
     scene.background.set(0x0f172a);
+    if (scene.fog) scene.fog.color.set(0x0f172a);
     dirLight.color.set(0x94a3b8);
     dirLight.intensity = 0.8;
     ambientLight.color.set(0x64748b);
     ambientLight.intensity = 0.5;
-    rainParticles.visible = true;
-    materialsMap.ledRing.color.set(0x10b981);
-    ledRingLight.color.set(0x10b981);
+    if (rainParticles) rainParticles.visible = true;
+    if (materialsMap.ledRing) materialsMap.ledRing.color.set(0x10b981);
+    if (ledRingLight) { ledRingLight.color.set(0x10b981); ledRingLight.intensity = 1.8; }
   } else if (mode === 'night') {
     scene.background.set(0x020617);
+    if (scene.fog) scene.fog.color.set(0x020617);
     dirLight.color.set(0x1e293b);
     dirLight.intensity = 0.3;
     ambientLight.color.set(0x0f172a);
     ambientLight.intensity = 0.25;
-    rainParticles.visible = false;
-    materialsMap.ledRing.color.set(0x10b981);
-    ledRingLight.color.set(0x10b981);
-    ledRingLight.intensity = 3.0;
+    if (rainParticles) rainParticles.visible = false;
+    if (materialsMap.ledRing) materialsMap.ledRing.color.set(0x10b981);
+    if (ledRingLight) { ledRingLight.color.set(0x10b981); ledRingLight.intensity = 3.0; }
+  } else if (mode === 'smog') {
+    scene.background.set(0x1f140e);
+    if (scene.fog) scene.fog.color.set(0x2a1a10);
+    dirLight.color.set(0xf59e0b);
+    dirLight.intensity = 1.05;
+    ambientLight.color.set(0x78350f);
+    ambientLight.intensity = 0.65;
+    if (rainParticles) rainParticles.visible = false;
+    if (materialsMap.ledRing) materialsMap.ledRing.color.set(0xef4444);
+    if (ledRingLight) { ledRingLight.color.set(0xef4444); ledRingLight.intensity = 3.2; }
   }
+
+  emitirTelemetria3D(true);
 }
 
 // Camera View Presets
@@ -6292,11 +6417,21 @@ function hideHotspot() {
   state.selectedStation = null;
 }
 
+function startTelemetrySyncLoop() {
+  initApp();
+  emitirTelemetria3D(true);
+  setInterval(() => {
+    if (typeof state !== 'undefined' && state.simRunning) {
+      emitirTelemetria3D(false);
+    }
+  }, 2500);
+}
+
 // Start application when DOM is ready
 if (document.readyState === 'loading') {
-  window.addEventListener('DOMContentLoaded', initApp);
+  window.addEventListener('DOMContentLoaded', startTelemetrySyncLoop);
 } else {
-  initApp();
+  startTelemetrySyncLoop();
 }
 
 
