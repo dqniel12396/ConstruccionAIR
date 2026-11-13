@@ -1,0 +1,7 @@
+.panel-empresa{padding:clamp(16px,3vw,30px);border:1px solid #293b4d;border-radius:16px;background:#101b29}
+.panel-empresa h2{font-size:1.35rem;font-weight:700;margin:0 0 18px}.panel-empresa h3{font-size:1rem;font-weight:650;margin:16px 0}
+.resumen,.filtros,.map-head{display:flex;flex-wrap:wrap;align-items:center;gap:16px}.map-head{justify-content:space-between}
+.resumen div{flex:1;min-width:145px;padding:14px;background:#172737;border-radius:10px;color:#bbcad6}.resumen strong{display:block;font-size:1.4rem;color:#75e3d4}
+.panel-empresa select,.panel-empresa input,.panel-empresa button{background:#172736;color:#eef6f6;padding:6px 10px;border:1px solid #486173;border-radius:6px}
+.tabla-empresa{overflow:auto;max-height:460px;margin-top:14px}.tabla-empresa table{width:100%;font-size:14px;border-collapse:collapse}.tabla-empresa td,.tabla-empresa th{text-align:left;padding:10px;border-bottom:1px solid #2b3c4a;white-space:nowrap}.tabla-empresa th{position:sticky;top:0;background:#192a39;color:#a7cbcf}
+#map{height:clamp(360px,55vh,660px);border-radius:12px;background:#e7ede7;z-index:0}.valor{background:#123e47;color:white;border:2px solid white;border-radius:16px;text-align:center;font:bold 13px/24px system-ui;box-shadow:0 1px 5px #1236}.leaflet-popup-content{color:#203442}

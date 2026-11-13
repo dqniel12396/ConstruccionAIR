@@ -71,8 +71,31 @@
       backdrop-filter: blur(10px);
     }
   </style>
-</head>
+<style>
+    [hidden]{display:none!important}
+    #login{min-height:100vh;display:grid;place-items:center;padding:20px;background:#0a1019;color:#edf6f5;font-family:Inter,Arial,sans-serif}
+    #login-form{width:min(100%,390px);padding:32px;border:1px solid #304353;border-radius:18px;background:#101c29}
+    #login-form label,#login-form input,#login-form button{display:block;width:100%}
+    #login-form label{margin:18px 0 6px;font-size:14px}
+    #login-form input{background:#0a141d;border:1px solid #627789;color:white;border-radius:8px;padding:10px}
+    #login-form button{background:#5eead4;color:#082526;padding:10px;border-radius:8px;margin-top:22px;font-weight:700}
+    #login-status{margin-top:12px;font-size:14px;color:#b8d8df}
+  </style>
+<link rel="stylesheet" href="leaflet/leaflet.css"><link rel="stylesheet" href="panel-empresa.css"></head>
 <body class="bg-[#0a0f18] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-teal-500 selection:text-white">
+  <main id="login">
+    <form id="login-form">
+      <p class="text-teal-300 font-semibold">OTech AirNet</p>
+      <h1 class="mt-2 text-2xl font-bold">Iniciar sesión</h1>
+      <label for="email">Correo electrónico</label>
+      <input id="email" name="email" type="email" autocomplete="username" required>
+      <label for="password">Contraseña</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required>
+      <button type="submit" disabled>Ingresar</button>
+      <p id="login-status" role="status" aria-live="polite">Conectando con el servicio de acceso…</p>
+    </form>
+  </main>
+  <div id="portal" hidden>
 
   <!-- TOP NAVIGATION HEADER -->
   <header class="border-b border-slate-800 bg-[#0d131f]/95 sticky top-0 z-50 backdrop-blur">
@@ -97,13 +120,7 @@
         <i data-lucide="building-2" class="w-4 h-4 text-teal-400"></i>
         <div class="text-xs">
           <span class="text-slate-400 text-[10px] block uppercase tracking-wider font-semibold">Organización Activa</span>
-          <select id="orgSelector" onchange="switchOrg(this.value)" class="bg-transparent font-medium text-slate-200 focus:outline-none cursor-pointer text-xs">
-            <option value="eco" class="bg-slate-900">Ecopetrol - Refinería Central</option>
-            <option value="alp" class="bg-slate-900">Alpina S.A. - Planta Sopó</option>
-            <option value="aer" class="bg-slate-900">OPAIN - Aeropuerto El Dorado</option>
-            <option value="con" class="bg-slate-900">Constructora Bolívar - Obras Norte</option>
-            <option value="all" class="bg-slate-900 font-semibold text-teal-400">🌐 Consorcio Metropolitano (Todas)</option>
-          </select>
+          <span id="profile-org"></span>
         </div>
       </div>
       <a href="index.html" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-teal-400 text-teal-300 text-xs font-semibold transition shadow-inner">
@@ -116,63 +133,56 @@
         <!-- Telemetría Status -->
         <div class="hidden lg:flex items-center gap-2 px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-xs text-emerald-400 font-mono">
           <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span>
-          <span>Red LoRaWAN/4G Operativa (99.8%)</span>
+          <span>Datos de demostración</span>
         </div>
 
         <!-- Botón Alertas -->
-        <button onclick="switchTab('tab-alertas')" class="relative p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-slate-300 transition">
+        <button data-view="tab-alertas" onclick="switchTab('tab-alertas')" class="relative p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 text-slate-300 transition">
           <i data-lucide="bell" class="w-5 h-5"></i>
-          <span class="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center animate-bounce">2</span>
+          <span class="absolute -top-1 -right-1 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center " id="cantidad-alertas"></span>
         </button>
 
         <!-- Perfil Usuario -->
-        <div class="flex items-center gap-2 pl-2 border-l border-slate-800">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-teal-400 flex items-center justify-center font-bold text-xs text-white">
-            DS
-          </div>
-          <div class="hidden xl:block text-left text-xs leading-tight">
-            <p class="font-semibold text-slate-200">Ing. Daniel Sanabria</p>
-            <p class="text-[10px] text-teal-400 font-mono">Rol: Admin Empresa / SIGE</p>
-          </div>
-        </div>
+        <div class="text-xs"><p id="profile-name"></p><p id="profile-roles" class="text-teal-300"></p></div>
+        <button id="logout" class="rounded-lg border border-slate-600 px-3 py-2 text-xs">Salir</button>
       </div>
     </div>
 
     <!-- TABS DE NAVEGACIÓN PRINCIPAL -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-1 sm:space-x-4 border-t border-slate-800/60 overflow-x-auto py-2 text-xs sm:text-sm font-medium">
-      <button onclick="switchTab('tab-dashboard')" id="btn-tab-dashboard" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-500/15 text-teal-300 border border-teal-500/30 transition">
+      <button data-view="tab-dashboard" onclick="switchTab('tab-dashboard')" id="btn-tab-dashboard" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-500/15 text-teal-300 border border-teal-500/30 transition">
         <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
         <span>Tablero Central & Mapa</span>
       </button>
 
-      <button onclick="switchTab('tab-dispositivos')" id="btn-tab-dispositivos" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
+      <button data-view="tab-dispositivos" onclick="switchTab('tab-dispositivos')" id="btn-tab-dispositivos" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
         <i data-lucide="cpu" class="w-4 h-4"></i>
         <span>Gestión de Aparatos (IoT)</span>
         <span class="px-1.5 py-0.2 rounded-md bg-slate-800 text-[10px] font-mono text-teal-400">18 Online</span>
       </button>
 
-      <button onclick="switchTab('tab-estadisticas')" id="btn-tab-estadisticas" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
+      <button data-view="tab-estadisticas" onclick="switchTab('tab-estadisticas')" id="btn-tab-estadisticas" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
         <i data-lucide="line-chart" class="w-4 h-4"></i>
         <span>Estadísticas & Analítica</span>
       </button>
 
-      <button onclick="switchTab('tab-alertas')" id="btn-tab-alertas" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
+      <button data-view="tab-alertas" onclick="switchTab('tab-alertas')" id="btn-tab-alertas" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
         <i data-lucide="shield-alert" class="w-4 h-4"></i>
         <span>Reglas & Alertas</span>
         <span class="px-1.5 py-0.2 rounded-md bg-rose-500/20 text-[10px] font-mono text-rose-300">2 Activas</span>
       </button>
 
-      <button onclick="switchTab('tab-mantenimiento')" id="btn-tab-mantenimiento" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
+      <button data-view="tab-mantenimiento" onclick="switchTab('tab-mantenimiento')" id="btn-tab-mantenimiento" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
         <i data-lucide="wrench" class="w-4 h-4"></i>
         <span>Bitácora de Mantenimiento</span>
       </button>
 
-      <button onclick="switchTab('tab-reportes')" id="btn-tab-reportes" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
+      <button data-view="tab-reportes" onclick="switchTab('tab-reportes')" id="btn-tab-reportes" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition">
         <i data-lucide="file-check" class="w-4 h-4"></i>
         <span>Reportes & Auditoría CAR/EPA</span>
       </button>
 
-      <button onclick="switchTab('tab-database')" id="btn-tab-database" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-500/15 text-teal-300 border border-teal-500/30 hover:bg-teal-500/25 transition">
+      <button data-view="tab-database" onclick="switchTab('tab-database')" id="btn-tab-database" class="tab-btn flex items-center gap-2 px-3 py-2 rounded-lg bg-teal-500/15 text-teal-300 border border-teal-500/30 hover:bg-teal-500/25 transition">
         <i data-lucide="database" class="w-4 h-4 text-teal-400"></i>
         <span class="font-bold">Diagrama Base de Datos (ERD)</span>
       </button>
@@ -185,919 +195,12 @@
     <!-- ========================================== -->
     <!-- TAB 1: TABLERO CENTRAL & MAPA GEO-ESPACIAL -->
     <!-- ========================================== -->
-    <section id="tab-dashboard" class="tab-content space-y-6">
-      
-      <!-- Banner Contextual Resumen -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- KPI 1: AQI General -->
-        <div class="gradient-card rounded-2xl p-5 shadow-lg relative overflow-hidden group hover:border-teal-500/40 transition">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Índice Calidad del Aire (ICA)</span>
-            <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400"><i data-lucide="activity" class="w-4 h-4"></i></span>
-          </div>
-          <div class="flex items-baseline gap-3">
-            <span class="text-3xl font-extrabold text-emerald-400 font-mono">42</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold">BUENO (0 - 50)</span>
-          </div>
-          <p class="text-xs text-slate-400 mt-2">Promedio ponderado en 18 estaciones activas de Bogotá y Sabana.</p>
-          <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-400"></div>
-        </div>
-
-        <!-- KPI 2: Material Particulado PM2.5 -->
-        <div class="gradient-card rounded-2xl p-5 shadow-lg relative overflow-hidden group hover:border-teal-500/40 transition">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Material Particulado PM2.5</span>
-            <span class="p-2 rounded-xl bg-amber-500/10 text-amber-400"><i data-lucide="cloud-fog" class="w-4 h-4"></i></span>
-          </div>
-          <div class="flex items-baseline gap-3">
-            <span class="text-3xl font-extrabold text-amber-300 font-mono">14.8 <span class="text-sm font-normal text-slate-400">µg/m³</span></span>
-            <span class="text-xs text-amber-400 flex items-center font-mono">↑ +2.1% (1h)</span>
-          </div>
-          <div class="flex items-center justify-between text-[11px] text-slate-400 mt-2">
-            <span>Norma OMS: &lt; 15 µg/m³</span>
-            <span class="text-teal-400 font-medium">Validado κ-Köhler</span>
-          </div>
-          <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-yellow-400"></div>
-        </div>
-
-        <!-- KPI 3: PM10 y Gases -->
-        <div class="gradient-card rounded-2xl p-5 shadow-lg relative overflow-hidden group hover:border-teal-500/40 transition">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">PM10 / CO₂ Media</span>
-            <span class="p-2 rounded-xl bg-cyan-500/10 text-cyan-400"><i data-lucide="gauge" class="w-4 h-4"></i></span>
-          </div>
-          <div class="flex items-baseline gap-3">
-            <span class="text-3xl font-extrabold text-cyan-300 font-mono">28.4 <span class="text-sm font-normal text-slate-400">µg/m³</span></span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-mono">432 ppm CO₂</span>
-          </div>
-          <p class="text-xs text-slate-400 mt-2">Sensor óptico Sensirion SPS30 & NDIR SCD41.</p>
-          <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-500 to-blue-500"></div>
-        </div>
-
-        <!-- KPI 4: Red de Dispositivos OTech -->
-        <div class="gradient-card rounded-2xl p-5 shadow-lg relative overflow-hidden group hover:border-teal-500/40 transition">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Flota de Estaciones</span>
-            <span class="p-2 rounded-xl bg-teal-500/10 text-teal-400"><i data-lucide="server" class="w-4 h-4"></i></span>
-          </div>
-          <div class="flex items-baseline gap-3">
-            <span class="text-3xl font-extrabold text-teal-400 font-mono">18 / 20</span>
-            <span class="text-xs text-emerald-400 font-mono font-semibold">90% Online</span>
-          </div>
-          <div class="flex items-center justify-between text-[11px] text-slate-400 mt-2">
-            <span class="text-rose-400">1 En Mantenimiento</span>
-            <span class="text-amber-400">1 Batería Baja</span>
-          </div>
-          <div class="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-teal-500 to-emerald-500"></div>
-        </div>
-      </div>
-
-      <!-- SECCIÓN MAPA INTERACTIVO & LISTADO RÁPIDO -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Mapa Simulado Interactivo (2 columnas) -->
-        <div class="lg:col-span-2 gradient-card rounded-2xl p-5 shadow-xl flex flex-col justify-between">
-          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div>
-              <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
-                <i data-lucide="map-pin" class="w-5 h-5 text-teal-400"></i>
-                Mapa Georreferenciado de Estaciones OTech AirNet
-              </h3>
-              <p class="text-xs text-slate-400">Visualización de nodos en tiempo real con semáforo ambiental ICA (Norma EPA / Res. 2254).</p>
-            </div>
-            <!-- Filtros de Capa -->
-            <div class="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-mono">
-              <button onclick="setMapLayer('pm25')" id="layer-pm25" class="px-2.5 py-1 rounded-lg bg-teal-500/20 text-teal-300 font-semibold">PM2.5</button>
-              <button onclick="setMapLayer('pm10')" id="layer-pm10" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">PM10</button>
-              <button onclick="setMapLayer('hum')" id="layer-hum" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">HR %</button>
-              <button onclick="setMapLayer('temp')" id="layer-temp" class="px-2.5 py-1 rounded-lg text-slate-400 hover:text-white">Temp</button>
-            </div>
-          </div>
-
-          <!-- Contenedor del Mapa Visual Estilizado -->
-          <div class="relative w-full h-80 sm:h-96 rounded-xl overflow-hidden border border-slate-800 bg-[#070b12] flex items-center justify-center group">
-            <!-- Grid de fondo simulando GIS / Cartografía Satelital Oscura -->
-            <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-70"></div>
-            
-            <!-- Silueta vectorial simulada de Bogotá y Sabana -->
-            <svg class="absolute inset-0 w-full h-full opacity-20 pointer-events-none" viewBox="0 0 800 500" fill="none">
-              <path d="M150,80 Q250,120 320,180 T450,260 T580,310 T720,440" stroke="#0d9488" stroke-width="2" stroke-dasharray="6 6"/>
-              <path d="M220,50 Q300,190 350,300 T420,480" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4 4"/>
-              <circle cx="340" cy="220" r="160" stroke="#14b8a6" stroke-width="1" stroke-opacity="0.3"/>
-            </svg>
-
-            <!-- NODOS / ESTACIONES SOBRE EL MAPA -->
-            <!-- Nodo 1: Estación Corferias -->
-            <div onclick="openStationDetail('OT-CORF-01')" class="absolute top-1/3 left-1/3 cursor-pointer group/pin transform -translate-x-1/2 -translate-y-1/2">
-              <div class="relative flex items-center justify-center">
-                <span class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400 pulse-dot absolute"></span>
-                <span class="w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-900 shadow-md"></span>
-              </div>
-              <div class="bg-slate-900/95 border border-emerald-500/40 rounded-lg px-2.5 py-1 mt-1 shadow-2xl text-[11px] whitespace-nowrap text-center backdrop-blur">
-                <p class="font-bold text-slate-100">OT-CORF-01 (Corferias)</p>
-                <p class="text-emerald-400 font-mono font-semibold">PM2.5: 12.3 µg/m³ • Bueno</p>
-              </div>
-            </div>
-
-            <!-- Nodo 2: Estación Puente Aranda (Zona Industrial) -->
-            <div onclick="openStationDetail('OT-INDU-02')" class="absolute top-1/2 left-2/5 cursor-pointer group/pin transform -translate-x-1/2 -translate-y-1/2">
-              <div class="relative flex items-center justify-center">
-                <span class="w-8 h-8 rounded-full bg-amber-500/20 border border-amber-400 pulse-dot absolute"></span>
-                <span class="w-4 h-4 rounded-full bg-amber-500 border-2 border-slate-900 shadow-md"></span>
-              </div>
-              <div class="bg-slate-900/95 border border-amber-500/40 rounded-lg px-2.5 py-1 mt-1 shadow-2xl text-[11px] whitespace-nowrap text-center backdrop-blur">
-                <p class="font-bold text-slate-100">OT-INDU-02 (Zona Franca)</p>
-                <p class="text-amber-400 font-mono font-semibold">PM2.5: 36.8 µg/m³ • Moderado</p>
-              </div>
-            </div>
-
-            <!-- Nodo 3: Estación El Dorado (OPAIN Logística) -->
-            <div onclick="openStationDetail('OT-AERO-03')" class="absolute top-1/4 left-1/5 cursor-pointer group/pin transform -translate-x-1/2 -translate-y-1/2">
-              <div class="relative flex items-center justify-center">
-                <span class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400 pulse-dot absolute"></span>
-                <span class="w-4 h-4 rounded-full bg-emerald-400 border-2 border-slate-900 shadow-md"></span>
-              </div>
-              <div class="bg-slate-900/95 border border-emerald-500/40 rounded-lg px-2.5 py-1 mt-1 shadow-2xl text-[11px] whitespace-nowrap text-center backdrop-blur">
-                <p class="font-bold text-slate-100">OT-AERO-03 (El Dorado)</p>
-                <p class="text-emerald-400 font-mono font-semibold">PM2.5: 10.9 µg/m³ • Bueno</p>
-              </div>
-            </div>
-
-            <!-- Nodo 4: Estación Autopista Sur (Movilidad) -->
-            <div onclick="openStationDetail('OT-MOVI-04')" class="absolute bottom-1/4 left-1/2 cursor-pointer group/pin transform -translate-x-1/2 -translate-y-1/2">
-              <div class="relative flex items-center justify-center">
-                <span class="w-8 h-8 rounded-full bg-rose-500/30 border border-rose-500 pulse-dot absolute"></span>
-                <span class="w-4 h-4 rounded-full bg-rose-500 border-2 border-slate-900 shadow-md"></span>
-              </div>
-              <div class="bg-slate-900/95 border border-rose-500/40 rounded-lg px-2.5 py-1 mt-1 shadow-2xl text-[11px] whitespace-nowrap text-center backdrop-blur">
-                <p class="font-bold text-slate-100">OT-MOVI-04 (Autopista Sur)</p>
-                <p class="text-rose-400 font-mono font-semibold">PM2.5: 58.2 µg/m³ • Dañina</p>
-              </div>
-            </div>
-
-            <!-- Nodo 5: Estación Sopó (Alpina Planta Agroindustrial) -->
-            <div onclick="openStationDetail('OT-ALPI-05')" class="absolute top-1/5 right-1/4 cursor-pointer group/pin transform -translate-x-1/2 -translate-y-1/2">
-              <div class="relative flex items-center justify-center">
-                <span class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400 pulse-dot absolute"></span>
-                <span class="w-4 h-4 rounded-full bg-emerald-500 border-2 border-slate-900 shadow-md"></span>
-              </div>
-              <div class="bg-slate-900/95 border border-emerald-500/40 rounded-lg px-2.5 py-1 mt-1 shadow-2xl text-[11px] whitespace-nowrap text-center backdrop-blur">
-                <p class="font-bold text-slate-100">OT-ALPI-05 (Sopó Sabana)</p>
-                <p class="text-emerald-400 font-mono font-semibold">PM2.5: 8.4 µg/m³ • Excelente</p>
-              </div>
-            </div>
-
-            <!-- Leyenda Inferior del Mapa -->
-            <div class="absolute bottom-3 left-3 bg-slate-900/90 border border-slate-800 rounded-lg px-3 py-1.5 text-[10px] flex items-center gap-3 backdrop-blur font-mono">
-              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Bueno (&lt;15)</span>
-              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Moderado (15-37)</span>
-              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-400"></span> Dañino (&gt;37)</span>
-              <span class="text-slate-500">| Sistema WGS84 EPSG:4326</span>
-            </div>
-
-            <!-- Botones de Control de Zoom -->
-            <div class="absolute top-3 right-3 flex flex-col gap-1">
-              <button class="w-7 h-7 bg-slate-900/90 hover:bg-slate-800 border border-slate-700 rounded-lg flex items-center justify-center text-slate-200 text-xs font-bold">+</button>
-              <button class="w-7 h-7 bg-slate-900/90 hover:bg-slate-800 border border-slate-700 rounded-lg flex items-center justify-center text-slate-200 text-xs font-bold">-</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Panel Lateral: Feed de Telemetría en Vivo & Notificaciones -->
-        <div class="gradient-card rounded-2xl p-5 shadow-xl flex flex-col justify-between">
-          <div>
-            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
-              <h3 class="text-sm font-bold text-slate-100 flex items-center gap-2">
-                <i data-lucide="radio" class="w-4 h-4 text-teal-400"></i>
-                Últimos Paquetes LoRaWAN / LTE
-              </h3>
-              <span class="text-[10px] font-mono text-slate-400">Stream 60s</span>
-            </div>
-
-            <div class="mt-3 space-y-2.5 overflow-y-auto max-h-72 pr-1" id="liveFeedList">
-              <!-- Item 1 -->
-              <div class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-800/80 hover:border-slate-700 text-xs">
-                <div class="flex items-center justify-between font-mono">
-                  <span class="font-bold text-slate-200">OT-CORF-01</span>
-                  <span class="text-[10px] text-slate-400">Hace 12 seg</span>
-                </div>
-                <div class="grid grid-cols-3 gap-1 mt-1.5 text-[11px] font-mono">
-                  <span class="text-emerald-400">PM2.5: 12.3</span>
-                  <span class="text-slate-300">PM10: 24.1</span>
-                  <span class="text-cyan-400">HR: 68.2%</span>
-                </div>
-                <div class="flex items-center justify-between mt-1 text-[10px] text-slate-500 font-mono">
-                  <span>Batt: 98% (Solar)</span>
-                  <span class="text-emerald-400/90">QA: VALIDATED</span>
-                </div>
-              </div>
-
-              <!-- Item 2 -->
-              <div class="p-2.5 rounded-xl bg-slate-900/70 border border-amber-500/20 hover:border-amber-500/40 text-xs">
-                <div class="flex items-center justify-between font-mono">
-                  <span class="font-bold text-slate-200">OT-INDU-02</span>
-                  <span class="text-[10px] text-slate-400">Hace 38 seg</span>
-                </div>
-                <div class="grid grid-cols-3 gap-1 mt-1.5 text-[11px] font-mono">
-                  <span class="text-amber-400">PM2.5: 36.8</span>
-                  <span class="text-slate-300">PM10: 62.4</span>
-                  <span class="text-cyan-400">HR: 79.5%</span>
-                </div>
-                <div class="flex items-center justify-between mt-1 text-[10px] text-slate-500 font-mono">
-                  <span>Batt: 91%</span>
-                  <span class="text-amber-400/90">κ-Köhler Corregido</span>
-                </div>
-              </div>
-
-              <!-- Item 3 -->
-              <div class="p-2.5 rounded-xl bg-slate-900/70 border border-rose-500/30 hover:border-rose-500/50 text-xs">
-                <div class="flex items-center justify-between font-mono">
-                  <span class="font-bold text-slate-200">OT-MOVI-04</span>
-                  <span class="text-[10px] text-slate-400">Hace 54 seg</span>
-                </div>
-                <div class="grid grid-cols-3 gap-1 mt-1.5 text-[11px] font-mono">
-                  <span class="text-rose-400 font-bold">PM2.5: 58.2</span>
-                  <span class="text-rose-300">PM10: 104.2</span>
-                  <span class="text-cyan-400">HR: 62.1%</span>
-                </div>
-                <div class="flex items-center justify-between mt-1 text-[10px] font-mono">
-                  <span class="text-slate-500">Alerta Superada (&gt;55)</span>
-                  <span class="text-rose-400 font-bold">EVENTO CRÍTICO</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-xs">
-            <span class="text-slate-400">Inyección MQTT / Broker:</span>
-            <span class="text-teal-400 font-mono font-semibold">ActiveMQ / ChirpStack TLS</span>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- MINI GRÁFICA COMPARATIVA DIARIA -->
-      <div class="gradient-card rounded-2xl p-5 shadow-xl">
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <div>
-            <h3 class="text-base font-bold text-slate-100 flex items-center gap-2">
-              <i data-lucide="trending-up" class="w-5 h-5 text-teal-400"></i>
-              Comportamiento Temporal de Contaminantes (Últimas 24 Horas)
-            </h3>
-            <p class="text-xs text-slate-400">Contraste entre lecturas reales vs Umbral de Seguridad de la OMS (24h Mean = 15 µg/m³).</p>
-          </div>
-          <div class="flex items-center gap-3 text-xs">
-            <span class="flex items-center gap-1.5 text-teal-300 font-mono"><span class="w-3 h-1 bg-teal-400 rounded"></span> PM2.5 Corregido</span>
-            <span class="flex items-center gap-1.5 text-cyan-300 font-mono"><span class="w-3 h-1 bg-cyan-400 rounded"></span> PM10</span>
-            <span class="flex items-center gap-1.5 text-rose-400 font-mono"><span class="w-3 h-0.5 bg-rose-500 rounded border border-rose-500 border-dashed"></span> Límite OMS</span>
-          </div>
-        </div>
-        <div class="h-64 w-full">
-          <canvas id="overviewChart"></canvas>
-        </div>
-      </div>
-
-    </section>
-
-
-    <!-- ========================================== -->
-    <!-- TAB 2: GESTIÓN DE APARATOS E INVENTARIO IOT-->
-    <!-- ========================================== -->
-    <section id="tab-dispositivos" class="tab-content hidden space-y-6">
-      
-      <!-- Barra Superior de Control de Dispositivos -->
-      <div class="flex flex-wrap items-center justify-between gap-4 gradient-card rounded-2xl p-5">
-        <div>
-          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-            <i data-lucide="cpu" class="w-5 h-5 text-teal-400"></i>
-            Parque de Estaciones Ambientales OTech AirNet
-          </h2>
-          <p class="text-xs text-slate-400">Gestión de nodos exteriores IP65, telemetría celular/LoRaWAN, baterías LiFePO4 y bandejas de sensores.</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <button onclick="alert('Abriendo asistente de enrolamiento seguro con QR y clave criptográfica AES-128...')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-teal-500/20">
-            <i data-lucide="plus-circle" class="w-4 h-4"></i>
-            Vincular Nueva Estación
-          </button>
-          <button onclick="exportDevicesCSV()" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs border border-slate-700 transition">
-            <i data-lucide="download" class="w-4 h-4"></i>
-            Exportar Inventario
-          </button>
-        </div>
-      </div>
-
-      <!-- Filtros y Búsqueda -->
-      <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div class="flex items-center gap-2 flex-1 max-w-md bg-slate-900 border border-slate-800 rounded-xl px-3 py-2">
-          <i data-lucide="search" class="w-4 h-4 text-slate-400"></i>
-          <input type="text" id="deviceSearch" onkeyup="filterDevices()" placeholder="Buscar por Serial, Ubicación, Empresa o DevEUI..." class="bg-transparent text-slate-200 placeholder-slate-500 w-full focus:outline-none text-xs font-mono">
-        </div>
-        <div class="flex items-center gap-2">
-          <select id="statusFilter" onchange="filterDevices()" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-slate-300 text-xs focus:outline-none">
-            <option value="all">Todos los Estados</option>
-            <option value="online">🟢 Solo Conectados (Online)</option>
-            <option value="alert">🔴 En Alerta / Crítico</option>
-            <option value="maint">🟡 En Mantenimiento</option>
-          </select>
-          <select id="commFilter" onchange="filterDevices()" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-slate-300 text-xs focus:outline-none">
-            <option value="all">Todas las Conectividades</option>
-            <option value="lora">LoRaWAN (US915)</option>
-            <option value="lte">4G LTE-M / NB-IoT</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Tabla de Aparatos -->
-      <div class="gradient-card rounded-2xl overflow-hidden border border-slate-800 shadow-xl">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs" id="deviceTable">
-            <thead class="bg-slate-900/90 text-slate-400 font-semibold uppercase tracking-wider text-[10px] border-b border-slate-800">
-              <tr>
-                <th class="p-4">Estación / Identificador</th>
-                <th class="p-4">Empresa / Sede</th>
-                <th class="p-4">Conectividad</th>
-                <th class="p-4">Sensores Instalados</th>
-                <th class="p-4">Batería / Energía</th>
-                <th class="p-4">Último Reporte</th>
-                <th class="p-4">Estado</th>
-                <th class="p-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-800/60 font-mono text-slate-300">
-              
-              <!-- Fila 1 -->
-              <tr class="hover:bg-slate-800/40 transition">
-                <td class="p-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
-                      <i data-lucide="radio" class="w-4 h-4"></i>
-                    </div>
-                    <div>
-                      <span class="font-bold text-white block">OT-CORF-01</span>
-                      <span class="text-[10px] text-slate-400">UUID: 8a7c-44f2-901</span>
-                    </div>
-                  </div>
-                </td>
-                <td class="p-4 font-sans">
-                  <span class="font-semibold text-slate-200 block">Corferias</span>
-                  <span class="text-[10px] text-slate-400">Pabellón 4 - Gran Entrada</span>
-                </td>
-                <td class="p-4">
-                  <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px]">LoRaWAN US915</span>
-                </td>
-                <td class="p-4 font-sans text-[11px]">
-                  <span class="text-teal-300">SPS30</span> (PM), <span class="text-cyan-300">BME680</span> (T/H/P), <span class="text-indigo-300">SCD41</span> (CO₂)
-                </td>
-                <td class="p-4">
-                  <div class="flex items-center gap-2">
-                    <div class="w-12 bg-slate-800 rounded-full h-2 overflow-hidden">
-                      <div class="bg-emerald-400 h-2 rounded-full" style="width: 98%"></div>
-                    </div>
-                    <span class="text-emerald-400 text-[11px]">98% (Solar)</span>
-                  </div>
-                </td>
-                <td class="p-4 text-slate-400">
-                  Hace 1 min (UTC)
-                </td>
-                <td class="p-4 font-sans">
-                  <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[11px] font-semibold flex items-center gap-1.5 w-max">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Conectado
-                  </span>
-                </td>
-                <td class="p-4 text-right">
-                  <button onclick="openStationDetail('OT-CORF-01')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 border border-slate-700 text-xs">Inspeccionar</button>
-                </td>
-              </tr>
-
-              <!-- Fila 2 -->
-              <tr class="hover:bg-slate-800/40 transition">
-                <td class="p-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400">
-                      <i data-lucide="radio" class="w-4 h-4"></i>
-                    </div>
-                    <div>
-                      <span class="font-bold text-white block">OT-INDU-02</span>
-                      <span class="text-[10px] text-slate-400">UUID: 3d1b-88a9-114</span>
-                    </div>
-                  </div>
-                </td>
-                <td class="p-4 font-sans">
-                  <span class="font-semibold text-slate-200 block">Zona Franca de Bogotá</span>
-                  <span class="text-[10px] text-slate-400">Lote 14 - Centro Logístico</span>
-                </td>
-                <td class="p-4">
-                  <span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[10px]">4G LTE-M</span>
-                </td>
-                <td class="p-4 font-sans text-[11px]">
-                  <span class="text-teal-300">SPS30</span> (PM), <span class="text-cyan-300">BME680</span> (T/H/P)
-                </td>
-                <td class="p-4">
-                  <div class="flex items-center gap-2">
-                    <div class="w-12 bg-slate-800 rounded-full h-2 overflow-hidden">
-                      <div class="bg-emerald-400 h-2 rounded-full" style="width: 89%"></div>
-                    </div>
-                    <span class="text-emerald-400 text-[11px]">89%</span>
-                  </div>
-                </td>
-                <td class="p-4 text-slate-400">
-                  Hace 3 min (UTC)
-                </td>
-                <td class="p-4 font-sans">
-                  <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[11px] font-semibold flex items-center gap-1.5 w-max">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Moderado
-                  </span>
-                </td>
-                <td class="p-4 text-right">
-                  <button onclick="openStationDetail('OT-INDU-02')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-teal-300 border border-slate-700 text-xs">Inspeccionar</button>
-                </td>
-              </tr>
-
-              <!-- Fila 3 -->
-              <tr class="hover:bg-slate-800/40 transition">
-                <td class="p-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
-                      <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-                    </div>
-                    <div>
-                      <span class="font-bold text-white block">OT-MOVI-04</span>
-                      <span class="text-[10px] text-slate-400">UUID: 5f9a-1120-773</span>
-                    </div>
-                  </div>
-                </td>
-                <td class="p-4 font-sans">
-                  <span class="font-semibold text-slate-200 block">TransMilenio S.A.</span>
-                  <span class="text-[10px] text-slate-400">Portal Sur - Carril Exclusivo</span>
-                </td>
-                <td class="p-4">
-                  <span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[10px]">4G LTE-M</span>
-                </td>
-                <td class="p-4 font-sans text-[11px]">
-                  <span class="text-teal-300">SPS30</span>, <span class="text-cyan-300">BME680</span>, <span class="text-amber-300">NO2/CO</span>
-                </td>
-                <td class="p-4">
-                  <div class="flex items-center gap-2">
-                    <div class="w-12 bg-slate-800 rounded-full h-2 overflow-hidden">
-                      <div class="bg-amber-400 h-2 rounded-full" style="width: 44%"></div>
-                    </div>
-                    <span class="text-amber-400 text-[11px]">44%</span>
-                  </div>
-                </td>
-                <td class="p-4 text-slate-400">
-                  Hace 45 seg
-                </td>
-                <td class="p-4 font-sans">
-                  <span class="px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-400 border border-rose-500/30 text-[11px] font-semibold flex items-center gap-1.5 w-max">
-                    <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Alerta Superada
-                  </span>
-                </td>
-                <td class="p-4 text-right">
-                  <button onclick="openStationDetail('OT-MOVI-04')" class="px-2.5 py-1 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 text-xs">Ver Incidente</button>
-                </td>
-              </tr>
-
-              <!-- Fila 4 -->
-              <tr class="hover:bg-slate-800/40 transition">
-                <td class="p-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-400">
-                      <i data-lucide="wrench" class="w-4 h-4"></i>
-                    </div>
-                    <div>
-                      <span class="font-bold text-white block">OT-BOLO-09</span>
-                      <span class="text-[10px] text-slate-400">UUID: 22ea-9002-339</span>
-                    </div>
-                  </div>
-                </td>
-                <td class="p-4 font-sans">
-                  <span class="font-semibold text-slate-200 block">Constructora Bolívar</span>
-                  <span class="text-[10px] text-slate-400">Proyecto Ciudad Verde Fase IV</span>
-                </td>
-                <td class="p-4">
-                  <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px]">LoRaWAN US915</span>
-                </td>
-                <td class="p-4 font-sans text-[11px]">
-                  <span class="text-teal-300">SPS30</span>, <span class="text-cyan-300">BME680</span>
-                </td>
-                <td class="p-4">
-                  <div class="flex items-center gap-2">
-                    <div class="w-12 bg-slate-800 rounded-full h-2 overflow-hidden">
-                      <div class="bg-rose-400 h-2 rounded-full" style="width: 14%"></div>
-                    </div>
-                    <span class="text-rose-400 text-[11px]">14%</span>
-                  </div>
-                </td>
-                <td class="p-4 text-slate-400">
-                  Hace 2 horas
-                </td>
-                <td class="p-4 font-sans">
-                  <span class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[11px] font-semibold flex items-center gap-1.5 w-max">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Calibración en Progreso
-                  </span>
-                </td>
-                <td class="p-4 text-right">
-                  <button onclick="alert('Equipo asignado a técnico Jamyson Rolón para reemplazo Hot-Swap de bandeja.')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs">Bitácora</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </section>
-
-
-    <!-- ========================================== -->
-    <!-- TAB 3: ESTADÍSTICAS & ANALÍTICA AMBIENTAL -->
-    <!-- ========================================== -->
-    <section id="tab-estadisticas" class="tab-content hidden space-y-6">
-      
-      <!-- Controles de Análisis y Calidad del Dato -->
-      <div class="gradient-card rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-            <i data-lucide="line-chart" class="w-5 h-5 text-teal-400"></i>
-            Analítica Avanzada & Series de Tiempo OTech
-          </h2>
-          <p class="text-xs text-slate-400">Evaluación de contaminantes según estándares EPA 40 CFR y Resolución 2254 de Colombia.</p>
-        </div>
-
-        <!-- Selector de Estado de Calidad del Dato (Requisito RF-09 y Filosofía OTech) -->
-        <div class="flex items-center gap-2 bg-slate-900 border border-slate-700 rounded-xl p-1.5 text-xs font-mono">
-          <span class="text-slate-400 text-[11px] px-2 font-sans font-semibold">Capa de Calidad:</span>
-          <button onclick="setQualityMode('validated')" id="btn-qa-val" class="px-3 py-1 rounded-lg bg-teal-500/20 text-teal-300 font-bold border border-teal-500/30">Validado (κ-Köhler)</button>
-          <button onclick="setQualityMode('raw')" id="btn-qa-raw" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white">Dato Crudo (Raw)</button>
-          <button onclick="setQualityMode('contrast')" id="btn-qa-con" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white">Contraste vs CAMS</button>
-        </div>
-      </div>
-
-      <!-- Selectores de Rango Temporal y Variables -->
-      <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div class="flex items-center gap-2">
-          <button onclick="setTimeRange('1h')" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700">1 Hora</button>
-          <button onclick="setTimeRange('24h')" class="px-3 py-1.5 rounded-lg bg-teal-500/20 text-teal-300 font-bold border border-teal-500/40">24 Horas</button>
-          <button onclick="setTimeRange('7d')" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700">7 Días</button>
-          <button onclick="setTimeRange('30d')" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700">30 Días</button>
-          <button onclick="setTimeRange('custom')" class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 border border-slate-700">Personalizado...</button>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer">
-            <input type="checkbox" checked id="chk-pm25" class="rounded bg-slate-800 border-slate-700 text-teal-500">
-            <span>PM2.5</span>
-          </label>
-          <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer">
-            <input type="checkbox" checked id="chk-pm10" class="rounded bg-slate-800 border-slate-700 text-cyan-500">
-            <span>PM10</span>
-          </label>
-          <label class="flex items-center gap-1.5 text-slate-300 cursor-pointer">
-            <input type="checkbox" checked id="chk-hum" class="rounded bg-slate-800 border-slate-700 text-blue-500">
-            <span>Humedad Relativa (HR %)</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Gráfico Principal de Series Temporales -->
-      <div class="gradient-card rounded-2xl p-6 shadow-xl">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-bold text-slate-200">Serie Temporal Multivariable (Resolución 1 Minuto)</h3>
-          <span class="text-[11px] font-mono text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">PostgreSQL + TimescaleDB Hypertable</span>
-        </div>
-        <div class="h-80 w-full">
-          <canvas id="detailedAnalyticsChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Tarjetas de Métricas Estadísticas Estadísticamente Relevantes -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        <!-- Tarjeta 1: Desviación y Compensación Higroscópica -->
-        <div class="gradient-card rounded-2xl p-5">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Compensación Kappa-Köhler</h4>
-            <i data-lucide="droplets" class="w-4 h-4 text-cyan-400"></i>
-          </div>
-          <div class="text-2xl font-extrabold text-cyan-300 font-mono mb-2">-18.4% <span class="text-xs font-normal text-slate-400">Corrección media</span></div>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Cuando la humedad relativa supera el 75%, el modelo físico elimina el crecimiento por niebla de las partículas higroscópicas, evitando falsas alarmas ambientales en Bogotá.
-          </p>
-        </div>
-
-        <!-- Tarjeta 2: Cumplimiento Normativo (SDA / OMS) -->
-        <div class="gradient-card rounded-2xl p-5">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Cumplimiento Límite 24h</h4>
-            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
-          </div>
-          <div class="text-2xl font-extrabold text-emerald-400 font-mono mb-2">94.2% <span class="text-xs font-normal text-slate-400">Horas dentro de norma</span></div>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            Solo se presentaron 2 excursiones breves superiores a 37 µg/m³ durante el pico de tráfico de 06:30 a 08:00 en corredor vehicular.
-          </p>
-        </div>
-
-        <!-- Tarjeta 3: Disponibilidad y Trazabilidad del Dato -->
-        <div class="gradient-card rounded-2xl p-5">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Completitud Temporal</h4>
-            <i data-lucide="shield-check" class="w-4 h-4 text-teal-400"></i>
-          </div>
-          <div class="text-2xl font-extrabold text-teal-300 font-mono mb-2">99.85% <span class="text-xs font-normal text-slate-400">Datos válidos</span></div>
-          <p class="text-xs text-slate-400 leading-relaxed">
-            1,438 de 1,440 paquetes diarios recibidos exitosamente por canal LoRaWAN con almacenamiento local de respaldo en tarjeta microSD.
-          </p>
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- ========================================== -->
-    <!-- TAB 4: REGLAS, ALERTAS Y NOTIFICACIONES  -->
-    <!-- ========================================== -->
-    <section id="tab-alertas" class="tab-content hidden space-y-6">
-      
-      <div class="gradient-card rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-            <i data-lucide="shield-alert" class="w-5 h-5 text-rose-400"></i>
-            Motor de Alertas y Notificaciones Inteligentes
-          </h2>
-          <p class="text-xs text-slate-400">Configuración de umbrales automáticos, disparadores por persistencia y despacho multicanal.</p>
-        </div>
-        <button onclick="openNewRuleModal()" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition">
-          <i data-lucide="plus" class="w-4 h-4"></i>
-          Nueva Regla de Alerta
-        </button>
-      </div>
-
-      <!-- Incidentes Activos Ahora Mismo -->
-      <div class="space-y-3">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-rose-500 pulse-dot"></span>
-          Incidentes Activos en Curso (Requieren Atención)
-        </h3>
-
-        <div class="p-4 rounded-2xl bg-rose-950/20 border border-rose-500/40 flex flex-wrap items-center justify-between gap-4">
-          <div class="flex items-start gap-3">
-            <div class="p-2 rounded-xl bg-rose-500/20 text-rose-400 mt-1">
-              <i data-lucide="alert-octagon" class="w-5 h-5"></i>
-            </div>
-            <div>
-              <div class="flex items-center gap-2 font-mono">
-                <span class="px-2 py-0.5 rounded bg-rose-500/30 text-rose-300 font-bold text-xs">CRÍTICO: PM2.5 Superó 55 µg/m³</span>
-                <span class="text-slate-400 text-xs">Estación OT-MOVI-04 (Autopista Sur)</span>
-              </div>
-              <p class="text-xs text-slate-300 mt-1">
-                La concentración promedio registrada en los últimos 20 minutos es de <strong class="text-rose-400">58.2 µg/m³</strong>. Excede el límite de contingencia ambiental fase 1.
-              </p>
-              <span class="text-[10px] text-slate-400 font-mono mt-1 block">Iniciado: Hoy a las 11:42 UTC • Notificado a brigada por SMS y Webhook</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <button onclick="alert('Incidente marcado como reconocido. Técnico notificado para validación.')" class="px-3 py-1.5 rounded-lg bg-rose-500 hover:bg-rose-600 text-white font-semibold text-xs transition">Reconocer Alerta</button>
-            <button onclick="alert('Abriendo bitácora de contingencia ambiental.')" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700">Ver Detalles</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Listado de Reglas Automatizadas -->
-      <div class="gradient-card rounded-2xl p-5">
-        <h3 class="text-sm font-bold text-slate-200 mb-4">Reglas y Umbrales Activos del Ecosistema</h3>
-        <div class="divide-y divide-slate-800/80 text-xs">
-          
-          <div class="py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <div>
-                <span class="font-bold text-slate-200 block">Umbral Preventivo PM2.5 (Norma OMS)</span>
-                <span class="text-[11px] text-slate-400 font-mono">Condición: PM2.5 &gt; 15.0 µg/m³ sostenido por más de 15 minutos</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-4 font-mono text-[11px]">
-              <span class="text-slate-400">Email, Dashboard</span>
-              <span class="text-emerald-400 font-semibold">ACTIVA</span>
-            </div>
-          </div>
-
-          <div class="py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <span class="w-2 h-2 rounded-full bg-amber-400"></span>
-              <div>
-                <span class="font-bold text-slate-200 block">Alerta Moderada por Contaminación Industrial</span>
-                <span class="text-[11px] text-slate-400 font-mono">Condición: PM10 &gt; 50.0 µg/m³ o PM2.5 &gt; 37.0 µg/m³</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-4 font-mono text-[11px]">
-              <span class="text-slate-400">SMS a Coordinador HSE, Webhook</span>
-              <span class="text-emerald-400 font-semibold">ACTIVA</span>
-            </div>
-          </div>
-
-          <div class="py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <span class="w-2 h-2 rounded-full bg-rose-400"></span>
-              <div>
-                <span class="font-bold text-slate-200 block">Contingencia Ambiental Fase 1 (SDA)</span>
-                <span class="text-[11px] text-slate-400 font-mono">Condición: PM2.5 &gt; 55.0 µg/m³ por más de 30 minutos</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-4 font-mono text-[11px]">
-              <span class="text-slate-400">SMS Urgente, Sirena Virtual, Notificación App</span>
-              <span class="text-emerald-400 font-semibold">ACTIVA</span>
-            </div>
-          </div>
-
-          <div class="py-3 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-              <div>
-                <span class="font-bold text-slate-200 block">Salud del Dispositivo: Batería Crítica</span>
-                <span class="text-[11px] text-slate-400 font-mono">Condición: Tensión LiFePO4 &lt; 3.0V (&lt;15% de carga)</span>
-              </div>
-            </div>
-            <div class="flex items-center gap-4 font-mono text-[11px]">
-              <span class="text-slate-400">Ticket a Soporte Técnico OTech</span>
-              <span class="text-emerald-400 font-semibold">ACTIVA</span>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-    </section>
-
-
-    <!-- ========================================== -->
-    <!-- TAB 5: BITÁCORA Y MANTENIMIENTO TÉCNICO   -->
-    <!-- ========================================== -->
-    <section id="tab-mantenimiento" class="tab-content hidden space-y-6">
-      <div class="gradient-card rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-            <i data-lucide="wrench" class="w-5 h-5 text-teal-400"></i>
-            Trazabilidad de Mantenimiento & Calibración (RF-07)
-          </h2>
-          <p class="text-xs text-slate-400">Historial de intervenciones en campo, reemplazo Hot-Swap de bandejas de sensores y calibración cero/span.</p>
-        </div>
-        <button onclick="alert('Abriendo formulario de registro de servicio técnico...')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition">
-          <i data-lucide="clipboard-pen" class="w-4 h-4"></i>
-          Registrar Intervención
-        </button>
-      </div>
-
-      <!-- Tarjetas de Resumen de Mantenimiento -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="gradient-card rounded-2xl p-4">
-          <span class="text-slate-400 text-[10px] uppercase font-bold">Tiempo Hot-Swap Promedio</span>
-          <p class="text-2xl font-bold font-mono text-teal-400 mt-1">1.4 min</p>
-          <span class="text-[11px] text-slate-400">Meta RNF-05: &le; 2.0 min</span>
-        </div>
-        <div class="gradient-card rounded-2xl p-4">
-          <span class="text-slate-400 text-[10px] uppercase font-bold">Calibraciones al Día</span>
-          <p class="text-2xl font-bold font-mono text-emerald-400 mt-1">94%</p>
-          <span class="text-[11px] text-slate-400">17 de 18 validadas</span>
-        </div>
-        <div class="gradient-card rounded-2xl p-4">
-          <span class="text-slate-400 text-[10px] uppercase font-bold">Próximos Servicios (30d)</span>
-          <p class="text-2xl font-bold font-mono text-amber-400 mt-1">2 Estaciones</p>
-          <span class="text-[11px] text-slate-400">Limpieza de láser óptico</span>
-        </div>
-        <div class="gradient-card rounded-2xl p-4">
-          <span class="text-slate-400 text-[10px] uppercase font-bold">Tasa de Fallas Hardware</span>
-          <p class="text-2xl font-bold font-mono text-cyan-400 mt-1">0.8%</p>
-          <span class="text-[11px] text-slate-400">Cumple meta Lean Six Sigma</span>
-        </div>
-      </div>
-
-      <!-- Registro de Intervenciones Recientes -->
-      <div class="gradient-card rounded-2xl p-5">
-        <h3 class="text-sm font-bold text-slate-200 mb-3">Historial de Intervenciones y Calibraciones</h3>
-        <div class="divide-y divide-slate-800 text-xs font-mono">
-          
-          <div class="py-3 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">CALIBRACIÓN ANUAL</span>
-                <span class="font-bold text-slate-200">OT-CORF-01</span>
-                <span class="text-slate-400 text-[11px]">por Ing. Jamyson Rolón</span>
-              </div>
-              <p class="text-slate-300 font-sans text-xs mt-1">Contraste con estación patrón de referencia BAM-1020 en laboratorio OTech. Factor de corrección ajustado a 1.02.</p>
-            </div>
-            <div class="text-right">
-              <span class="text-slate-400 text-[11px] block">24 Octubre 2026</span>
-              <span class="text-emerald-400 text-[11px]">Certificado #CAL-2026-088</span>
-            </div>
-          </div>
-
-          <div class="py-3 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-bold text-[10px]">REEMPLAZO BANDEJA HOT-SWAP</span>
-                <span class="font-bold text-slate-200">OT-ALPI-05</span>
-                <span class="text-slate-400 text-[11px]">por Técnico Juan Gómez</span>
-              </div>
-              <p class="text-slate-300 font-sans text-xs mt-1">Sustitución de bandeja modular por fin de vida útil de celda electroquímica. Tiempo total de parada: 84 segundos.</p>
-            </div>
-            <div class="text-right">
-              <span class="text-slate-400 text-[11px] block">15 Octubre 2026</span>
-              <span class="text-teal-400 text-[11px]">BOM Lote #BOM-2026-B3</span>
-            </div>
-          </div>
-
-        </div>
-      </div>
-    </section>
-
-
-    <!-- ========================================== -->
-    <!-- TAB 6: REPORTES & CUMPLIMIENTO REGULATORIO -->
-    <!-- ========================================== -->
-    <section id="tab-reportes" class="tab-content hidden space-y-6">
-      <div class="gradient-card rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
-            <i data-lucide="file-check" class="w-5 h-5 text-teal-400"></i>
-            Generador de Reportes Ambientales & Cumplimiento (RF-08)
-          </h2>
-          <p class="text-xs text-slate-400">Exportación formal con sellado criptográfico para Secretaría Distrital de Ambiente (SDA), CAR o auditorías ESG.</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        <!-- Reporte 1: Informe Mensual Ambiental -->
-        <div class="gradient-card rounded-2xl p-6 flex flex-col justify-between">
-          <div>
-            <div class="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 flex items-center justify-center text-teal-400 mb-3">
-              <i data-lucide="file-text" class="w-5 h-5"></i>
-            </div>
-            <h3 class="text-base font-bold text-slate-100">Informe Mensual de Calidad del Aire</h3>
-            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-              Consolida valores horarios y diarios de PM2.5, PM10, AQI, rosas de vientos y correlación meteorológica de todas las sedes del cliente.
-            </p>
-            <div class="mt-4 space-y-1 font-mono text-[11px] text-slate-300">
-              <p>• Formato: PDF Editorial (md2pdf)</p>
-              <p>• Validez: Res. 2254 de 2017</p>
-              <p>• Firma: Certificado Digital OTech</p>
-            </div>
-          </div>
-          <button onclick="alert('Generando PDF corporativo con md2pdf y tablas estadísticas...');" class="mt-6 w-full py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition flex items-center justify-center gap-2">
-            <i data-lucide="download" class="w-4 h-4"></i> Descargar Informe PDF
-          </button>
-        </div>
-
-        <!-- Reporte 2: Datos Crudos y Validados CSV/Excel -->
-        <div class="gradient-card rounded-2xl p-6 flex flex-col justify-between">
-          <div>
-            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 mb-3">
-              <i data-lucide="table" class="w-5 h-5"></i>
-            </div>
-            <h3 class="text-base font-bold text-slate-100">Exportación Masiva de Telemetría</h3>
-            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-              Descarga datasets completos con marca de tiempo UTC, geolocalización, identificadores de calidad de dato y lecturas segundo a segundo.
-            </p>
-            <div class="mt-4 space-y-1 font-mono text-[11px] text-slate-300">
-              <p>• Formatos: CSV, Parquet, JSON</p>
-              <p>• Compatible con R, Python, GIS</p>
-              <p>• Incluye banderas QA/QC</p>
-            </div>
-          </div>
-          <button onclick="alert('Preparando dataset comprimido ZIP con datos históricos...');" class="mt-6 w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 border border-slate-700 font-semibold text-xs transition flex items-center justify-center gap-2">
-            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Exportar Dataset (CSV)
-          </button>
-        </div>
-
-        <!-- Reporte 3: Trazabilidad de Planta & Metrología -->
-        <div class="gradient-card rounded-2xl p-6 flex flex-col justify-between">
-          <div>
-            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-3">
-              <i data-lucide="award" class="w-5 h-5"></i>
-            </div>
-            <h3 class="text-base font-bold text-slate-100">Certificado Metrológico de Lote</h3>
-            <p class="text-xs text-slate-400 mt-2 leading-relaxed">
-              Expediente de control de calidad de planta (estaciones de prueba ICT, IP65 y cámara de exposición de gas) para sustentar auditorías.
-            </p>
-            <div class="mt-4 space-y-1 font-mono text-[11px] text-slate-300">
-              <p>• Norma: ISO/IEC 17025</p>
-              <p>• Trazabilidad BOM de componentes</p>
-              <p>• Sellado con Hash SHA-256</p>
-            </div>
-          </div>
-          <button onclick="alert('Consultando trazabilidad de manufactura en SIGE OTech...');" class="mt-6 w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-slate-700 font-semibold text-xs transition flex items-center justify-center gap-2">
-            <i data-lucide="shield-check" class="w-4 h-4"></i> Ver Certificados
-          </button>
-        </div>
-
-      </div>
-    </section>
-
-  
-    <!-- ========================================== -->
-    <!-- TAB 7: DIAGRAMA ENTIDAD-RELACIÓN (ERD)     -->
-    <!-- ========================================== -->
-    <section id="tab-database" class="tab-content hidden space-y-6">
+    <section class="tab-content panel-empresa hidden" id="tab-dashboard"><h2>Resumen de la empresa</h2><div id="resumen" class="resumen"></div><div class="map-head"><h3>Mapa de estaciones</h3><label>Indicador <select id="indicador"><option value="pm25">PM2.5 (µg/m³)</option><option value="pm10">PM10 (µg/m³)</option><option value="hr">Humedad (%)</option><option value="temp">Temperatura (°C)</option></select></label></div><div id="map"></div><h3>Últimas lecturas por estación</h3><div class="tabla-empresa" id="lecturas"></div></section>
+<section class="tab-content panel-empresa hidden" id="tab-dispositivos"><h2>Inventario de dispositivos</h2><div class="filtros"><label>Buscar estación o sede <input id="buscar-equipo" type="search"></label><button id="exportar-equipos">Descargar CSV</button></div><div class="tabla-empresa" id="equipos"></div></section>
+<section class="tab-content panel-empresa hidden" id="tab-estadisticas"><h2>Histórico de telemetría</h2><div class="filtros"><label>Estación <select id="equipo-serie"></select></label><label>Variable <select id="variable-serie"></select></label><label>Periodo <select id="periodo"><option value="24">Últimas 24 h de la serie</option><option value="168">Últimos 7 días de la serie</option><option value="0">Toda la serie cargada</option></select></label></div><div style="height:260px"><canvas id="grafica"></canvas></div><div class="tabla-empresa" id="serie"></div></section>
+<section class="tab-content panel-empresa hidden" id="tab-alertas"><h2>Incidentes de alerta</h2><div class="tabla-empresa" id="alertas-empresa"></div></section>
+<section class="tab-content panel-empresa hidden" id="tab-mantenimiento"><h2>Órdenes de mantenimiento</h2><div class="tabla-empresa" id="ordenes-empresa"></div></section>
+<section class="tab-content panel-empresa hidden" id="tab-reportes"><h2>Reportes de la empresa</h2><div class="tabla-empresa" id="reportes-empresa"></div></section><section id="tab-database" class="tab-content hidden space-y-6">
       <div class="gradient-card rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
@@ -1132,74 +235,6 @@
 
   </main>
 
-  <!-- MODAL DE DETALLE DE ESTACIÓN (INSPECCIÓN TÉCNICA) -->
-  <div id="stationDetailModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="gradient-card max-w-2xl w-full rounded-3xl p-6 border border-slate-700 shadow-2xl relative">
-      <button onclick="closeStationDetail()" class="absolute top-5 right-5 text-slate-400 hover:text-white">
-        <i data-lucide="x" class="w-6 h-6"></i>
-      </button>
-
-      <div class="flex items-center gap-3 mb-4">
-        <div class="w-12 h-12 rounded-2xl bg-teal-500/20 text-teal-400 border border-teal-500/40 flex items-center justify-center">
-          <i data-lucide="radio" class="w-6 h-6"></i>
-        </div>
-        <div>
-          <h3 class="text-xl font-extrabold text-white" id="modalStationTitle">OT-CORF-01</h3>
-          <p class="text-xs text-teal-400 font-mono" id="modalStationSub">Estación Fija Exterior IP65 • Bogotá D.C.</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4 font-mono text-xs">
-        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <span class="text-slate-500 text-[10px] block">PM2.5 ACTUAL</span>
-          <span class="text-emerald-400 font-bold text-base" id="modalPM25">12.3 µg/m³</span>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <span class="text-slate-500 text-[10px] block">HUMEDAD HR</span>
-          <span class="text-cyan-400 font-bold text-base" id="modalHR">68.2%</span>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <span class="text-slate-500 text-[10px] block">TEMPERATURA</span>
-          <span class="text-amber-400 font-bold text-base" id="modalTemp">18.4 °C</span>
-        </div>
-        <div class="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <span class="text-slate-500 text-[10px] block">BATERÍA LiFePO4</span>
-          <span class="text-emerald-400 font-bold text-base" id="modalBatt">98% (Solar)</span>
-        </div>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div class="p-3.5 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1.5 font-mono">
-          <div class="flex justify-between">
-            <span class="text-slate-400">Microcontrolador & OS:</span>
-            <span class="text-slate-200">ESP32-S3 Dual-Core • FreeRTOS OTech OS v2.4</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">Seguridad Criptográfica:</span>
-            <span class="text-teal-400">ATECC608A Hardware Secure Element (mTLS)</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">Módulo de Admisión Óptica:</span>
-            <span class="text-slate-200">Cámara Stevenson OTech + Trampa de Agua</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">Última Verificación Cero:</span>
-            <span class="text-slate-200">14 Oct 2026 (Dentro de rango &plusmn;2%)</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-6 flex items-center justify-end gap-3">
-        <button onclick="alert('Enviando comando de autodiagnóstico remoto por enlace de control...');" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 text-xs font-semibold border border-slate-700">
-          Ejecutar Autodiagnóstico
-        </button>
-        <button onclick="closeStationDetail()" class="px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs">
-          Cerrar
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- FOOTER INFORMATIVO -->
   <footer class="border-t border-slate-800/80 bg-[#090d15] py-4 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-wrap items-center justify-between gap-2">
@@ -1216,13 +251,15 @@
     </div>
   </footer>
 
+  </div>
   <!-- SCRIPTS DE INTERACCIÓN Y GRÁFICOS -->
   <script>
     // Inicializar Iconos Lucide
-    lucide.createIcons();
+    window.lucide?.createIcons();
 
     // Manejador de Pestañas
     function switchTab(tabId) {
+      if (!allowedTabs.has(tabId)) return;
       document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
       document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('bg-teal-500/15', 'text-teal-300', 'border-teal-500/30');
@@ -1239,280 +276,12 @@
       }
 
       // Re-render de iconos y gráficas si aplica
-      lucide.createIcons();
-      if (tabId === 'tab-estadisticas') {
-        renderDetailedAnalyticsChart();
-      }
+      window.lucide?.createIcons();
+      if (tabId === "tab-estadisticas") mostrarSerie();
     }
-
-    // Modal de Estaciones
-    function openStationDetail(stationId) {
-      const modal = document.getElementById('stationDetailModal');
-      const title = document.getElementById('modalStationTitle');
-      const sub = document.getElementById('modalStationSub');
-      const pm25 = document.getElementById('modalPM25');
-      const hr = document.getElementById('modalHR');
-      const temp = document.getElementById('modalTemp');
-
-      title.innerText = stationId;
-      if (stationId === 'OT-CORF-01') {
-        sub.innerText = 'Corferias Bogotá • Entrada Principal';
-        pm25.innerText = '12.3 µg/m³';
-        pm25.className = 'text-emerald-400 font-bold text-base';
-        hr.innerText = '68.2%';
-        temp.innerText = '18.4 °C';
-      } else if (stationId === 'OT-INDU-02') {
-        sub.innerText = 'Zona Franca de Bogotá • Patio Logístico';
-        pm25.innerText = '36.8 µg/m³';
-        pm25.className = 'text-amber-400 font-bold text-base';
-        hr.innerText = '79.5%';
-        temp.innerText = '17.1 °C';
-      } else if (stationId === 'OT-MOVI-04') {
-        sub.innerText = 'TransMilenio Portal Sur • Corredor Vehicular';
-        pm25.innerText = '58.2 µg/m³';
-        pm25.className = 'text-rose-400 font-bold text-base';
-        hr.innerText = '62.1%';
-        temp.innerText = '21.0 °C';
-      } else {
-        sub.innerText = 'Estación de Monitoreo OTech';
-        pm25.innerText = '14.0 µg/m³';
-        pm25.className = 'text-teal-400 font-bold text-base';
-        hr.innerText = '65.0%';
-        temp.innerText = '19.0 °C';
-      }
-
-      modal.classList.remove('hidden');
-    }
-
-    function closeStationDetail() {
-      document.getElementById('stationDetailModal').classList.add('hidden');
-    }
-
-    // Cambio de Organización
-    function switchOrg(val) {
-      console.log('Cambiando a organización:', val);
-    }
-
-    // Filtros de Dispositivos en la Tabla
-    function filterDevices() {
-      const q = document.getElementById('deviceSearch').value.toLowerCase();
-      const status = document.getElementById('statusFilter').value;
-      const rows = document.querySelectorAll('#deviceTable tbody tr');
-
-      rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        let matchesQuery = text.includes(q);
-        let matchesStatus = true;
-
-        if (status === 'online' && !text.includes('conectado')) matchesStatus = false;
-        if (status === 'alert' && !text.includes('alerta')) matchesStatus = false;
-        if (status === 'maint' && !text.includes('calibración') && !text.includes('mantenimiento')) matchesStatus = false;
-
-        if (matchesQuery && matchesStatus) {
-          row.style.display = '';
-        } else {
-          row.style.display = 'none';
-        }
-      });
-    }
-
-    function setMapLayer(layer) {
-      document.querySelectorAll('#layer-pm25, #layer-pm10, #layer-hum, #layer-temp').forEach(b => {
-        b.className = 'px-2.5 py-1 rounded-lg text-slate-400 hover:text-white';
-      });
-      document.getElementById('layer-' + layer).className = 'px-2.5 py-1 rounded-lg bg-teal-500/20 text-teal-300 font-semibold';
-    }
-
-    function setQualityMode(mode) {
-      document.querySelectorAll('#btn-qa-val, #btn-qa-raw, #btn-qa-con').forEach(b => {
-        b.className = 'px-3 py-1 rounded-lg text-slate-400 hover:text-white';
-      });
-      if (mode === 'validated') document.getElementById('btn-qa-val').className = 'px-3 py-1 rounded-lg bg-teal-500/20 text-teal-300 font-bold border border-teal-500/30';
-      if (mode === 'raw') document.getElementById('btn-qa-raw').className = 'px-3 py-1 rounded-lg bg-teal-500/20 text-teal-300 font-bold border border-teal-500/30';
-      if (mode === 'contrast') document.getElementById('btn-qa-con').className = 'px-3 py-1 rounded-lg bg-teal-500/20 text-teal-300 font-bold border border-teal-500/30';
-      renderDetailedAnalyticsChart(mode);
-    }
-
-    function setTimeRange(r) {
-      console.log('Rango temporal seleccionado:', r);
-    }
-
-    function exportDevicesCSV() {
-      alert('Generando archivo CSV: otech_dispositivos_inventario_' + new Date().toISOString().slice(0,10) + '.csv');
-    }
-
-    function openNewRuleModal() {
-      alert('Abriendo asistente para crear regla de umbral con persistencia temporal y canales de notificación.');
-    }
-
-    // Inicializar Gráfica Overview (Chart.js)
-    let overviewChartInstance = null;
-    function initOverviewChart() {
-      const ctx = document.getElementById('overviewChart').getContext('2d');
-      const hours = ['00:00', '02:00', '04:00', '06:00', '08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00', '22:00'];
-      
-      overviewChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: hours,
-          datasets: [
-            {
-              label: 'PM2.5 Validado (µg/m³)',
-              data: [9.2, 8.5, 9.8, 18.4, 22.1, 15.6, 13.2, 14.8, 16.2, 24.5, 17.8, 12.1],
-              borderColor: '#2dd4bf',
-              backgroundColor: 'rgba(45, 212, 191, 0.1)',
-              fill: true,
-              tension: 0.4,
-              borderWidth: 2
-            },
-            {
-              label: 'PM10 (µg/m³)',
-              data: [18.4, 16.2, 19.5, 36.2, 44.5, 30.1, 25.4, 28.9, 31.2, 48.9, 35.2, 22.4],
-              borderColor: '#38bdf8',
-              backgroundColor: 'transparent',
-              borderDash: [4, 4],
-              tension: 0.4,
-              borderWidth: 1.5
-            },
-            {
-              label: 'Límite OMS 24h (15 µg/m³)',
-              data: Array(12).fill(15),
-              borderColor: '#f43f5e',
-              borderDash: [6, 6],
-              borderWidth: 1.5,
-              pointRadius: 0,
-              fill: false
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false }
-          },
-          scales: {
-            x: {
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
-            },
-            y: {
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
-            }
-          }
-        }
-      });
-    }
-
-    // Inicializar Gráfica de Analítica Detallada
-    let detailedChartInstance = null;
-    function renderDetailedAnalyticsChart(mode = 'validated') {
-      const el = document.getElementById('detailedAnalyticsChart');
-      if (!el) return;
-      const ctx = el.getContext('2d');
-      if (detailedChartInstance) detailedChartInstance.destroy();
-
-      const timestamps = [];
-      for (let i = 0; i < 24; i++) {
-        timestamps.push(`${i < 10 ? '0' + i : i}:00`);
-      }
-
-      let pm25Data = [11, 10, 10, 14, 26, 38, 29, 21, 16, 15, 14, 13, 14, 15, 18, 24, 32, 28, 20, 16, 15, 14, 12, 11];
-      let rawData = [11, 10, 12, 18, 34, 52, 41, 26, 17, 15, 14, 13, 14, 15, 19, 29, 44, 38, 24, 18, 16, 15, 13, 12];
-      let humData = [88, 89, 91, 87, 82, 74, 65, 58, 52, 50, 48, 51, 55, 59, 64, 72, 79, 84, 86, 88, 89, 90, 89, 88];
-
-      let datasets = [];
-      if (mode === 'validated') {
-        datasets.push({
-          label: 'PM2.5 Validado con κ-Köhler (µg/m³)',
-          data: pm25Data,
-          borderColor: '#14b8a6',
-          backgroundColor: 'rgba(20, 184, 166, 0.15)',
-          fill: true,
-          tension: 0.35,
-          yAxisID: 'y'
-        });
-      } else if (mode === 'raw') {
-        datasets.push({
-          label: 'PM2.5 Crudo Sin Compensar (µg/m³)',
-          data: rawData,
-          borderColor: '#f59e0b',
-          backgroundColor: 'rgba(245, 158, 11, 0.1)',
-          fill: true,
-          tension: 0.35,
-          yAxisID: 'y'
-        });
-      } else {
-        datasets.push(
-          {
-            label: 'OTech Validado',
-            data: pm25Data,
-            borderColor: '#14b8a6',
-            fill: false,
-            tension: 0.35,
-            yAxisID: 'y'
-          },
-          {
-            label: 'Estación Referencia CAMS',
-            data: pm25Data.map(v => v + (Math.random() * 2 - 1)),
-            borderColor: '#818cf8',
-            borderDash: [5, 5],
-            fill: false,
-            tension: 0.35,
-            yAxisID: 'y'
-          }
-        );
-      }
-
-      datasets.push({
-        label: 'Humedad Relativa (%)',
-        data: humData,
-        borderColor: '#38bdf8',
-        backgroundColor: 'transparent',
-        borderDash: [3, 3],
-        tension: 0.35,
-        yAxisID: 'y1'
-      });
-
-      detailedChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: { labels: timestamps, datasets: datasets },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          interaction: { mode: 'index', intersect: false },
-          scales: {
-            x: {
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
-            },
-            y: {
-              type: 'linear',
-              display: true,
-              position: 'left',
-              title: { display: true, text: 'Concentración (µg/m³)', color: '#2dd4bf', font: { size: 11 } },
-              grid: { color: 'rgba(255, 255, 255, 0.05)' },
-              ticks: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } }
-            },
-            y1: {
-              type: 'linear',
-              display: true,
-              position: 'right',
-              title: { display: true, text: 'Humedad Relativa (%)', color: '#38bdf8', font: { size: 11 } },
-              grid: { drawOnChartArea: false },
-              ticks: { color: '#38bdf8', font: { family: 'JetBrains Mono', size: 10 } }
-            }
-          }
-        }
-      });
-    }
-
-    // Carga inicial
-    window.addEventListener('DOMContentLoaded', () => {
-      initOverviewChart();
-    });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js" onerror="document.getElementById('login-status').textContent='No se pudo cargar el servicio de acceso. Recarga la página.'"></script>
+  <script src="leaflet/leaflet.js"></script><script src="mapa-estaciones.js"></script><script src="panel-empresa.js"></script><script src="portal-auth.js"></script>
 </body>
 </html>
 
