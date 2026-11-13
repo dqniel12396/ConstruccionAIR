@@ -1,0 +1,11 @@
+{
+  "name": "OTech AirNet S.A.S. — Ecosistema IoT & Gemelo Digital",
+  "short_name": "OTech AirNet",
+  "description": "Monitoreo ambiental IoT, compensación higroscópica κ-Köhler y Gemelo Digital 3D.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070b12",
+  "theme_color": "#14b8a6",
+  "lang": "es-CO"
+}

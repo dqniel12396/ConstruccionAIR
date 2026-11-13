@@ -146,12 +146,76 @@
     throw new Error('Crypto SHA-256 no disponible en este entorno.');
   }
 
+  function proyectarTendencia24h(valores, pasos) {
+    const nums = (Array.isArray(valores) ? valores : [])
+      .map(v => Number(v))
+      .filter(v => !Number.isNaN(v));
+    if (!nums.length) return [];
+    const ventana = nums.slice(-6);
+    const ultimo = ventana[ventana.length - 1];
+    let sumaPesos = 0;
+    let pendiente = 0;
+    for (let i = 1; i < ventana.length; i++) {
+      const peso = i;
+      pendiente += (ventana[i] - ventana[i - 1]) * peso;
+      sumaPesos += peso;
+    }
+    const delta = sumaPesos > 0 ? (pendiente / sumaPesos) * 0.45 : 0;
+    const totalPasos = Math.max(1, Number(pasos) || 6);
+    const salida = [];
+    for (let k = 1; k <= totalPasos; k++) {
+      const amortiguado = Math.max(2, ultimo + delta * k * Math.pow(0.9, k - 1));
+      salida.push(Number(amortiguado.toFixed(1)));
+    }
+    return salida;
+  }
+
+  function detectarAnomaliasRed(estaciones) {
+    if (!Array.isArray(estaciones) || !estaciones.length) return [];
+    const pm25Vals = estaciones
+      .map(e => Number(e?.lecturas?.PM2_5 ?? e?.base?.pm25))
+      .filter(v => !Number.isNaN(v))
+      .sort((a, b) => a - b);
+    const mid = Math.floor(pm25Vals.length / 2);
+    const mediana = pm25Vals.length
+      ? (pm25Vals.length % 2 !== 0 ? pm25Vals[mid] : (pm25Vals[mid - 1] + pm25Vals[mid]) / 2)
+      : 15;
+
+    const hallazgos = [];
+    for (const est of estaciones) {
+      const pm = Number(est?.lecturas?.PM2_5 ?? est?.base?.pm25);
+      const bat = Number(est?.bateria ?? 100);
+      if (bat < 88) {
+        hallazgos.push({
+          serial: est.serial,
+          sede: est.sede,
+          tipo: 'BATERIA_BAJA',
+          severidad: 'PREVENTIVO',
+          mensaje: `Batería en ${bat}% (< 88%). Revisar controlador MPPT / LiFePO4.`
+        });
+      }
+      if (!Number.isNaN(pm) && mediana > 0 && pm > mediana * 2.4 && est.estado !== 'ALERTA_CRITICA') {
+        hallazgos.push({
+          serial: est.serial,
+          sede: est.sede,
+          tipo: 'POSIBLE_DERIVA_OPTICA',
+          severidad: 'PREVENTIVO',
+          mensaje: `PM2.5 (${pm.toFixed(1)} µg/m³) supera 2.4x la mediana de red (${mediana.toFixed(1)}). Sugerida limpieza de cámara óptica.`
+        });
+      }
+    }
+    return hallazgos;
+  }
+
   return {
     aplicarKappaKohler,
     calcularAQI_PM25,
     getAQIInfo,
     ESTACIONES_BASE_OTECH,
     evaluarRegla,
-    computarHashSHA256
+    computarHashSHA256,
+    proyectarTendencia24h,
+    detectarAnomaliasRed
   };
 });
+

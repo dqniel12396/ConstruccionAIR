@@ -366,3 +366,4 @@ GRANT EXECUTE ON FUNCTION
 TO authenticated;
 
 COMMIT;
+

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OTech AirNet S.A.S. — Gemelo Digital 3D & Plataforma IoT</title>
   <meta name="description" content="Ecosistema Integral de Monitoreo de Calidad del Aire IoT, Gemelo Digital 3D y Plataforma Cloud Multi-Tenant. Proyecto SDLC Universidad Distrital.">
+  <meta name="theme-color" content="#14b8a6">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -47,6 +49,10 @@
       </div>
 
       <div class="flex items-center gap-3">
+        <a href="plataforma_web/publico.html" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-sky-400 text-sky-300 text-xs font-semibold transition">
+          <i data-lucide="globe" class="w-4 h-4 text-sky-400"></i>
+          <span>Portal Ciudadano</span>
+        </a>
         <a href="gemelo_digital_3d/index.html" class="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-teal-400 text-teal-300 text-xs font-semibold transition">
           <i data-lucide="box" class="w-4 h-4 text-teal-400"></i>
           <span>Gemelo 3D</span>
@@ -184,6 +190,9 @@
 
   <script>
     lucide.createIcons();
+    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    }
   </script>
 </body>
 </html>

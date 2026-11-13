@@ -73,6 +73,21 @@ describe('OTech AirNet Core — Física κ-Köhler, AQI y Reglas', () => {
     assert.equal(actual, expected);
     assert.match(actual, /^[0-9a-f]{64}$/);
   });
+
+  it('proyecta tendencia a 24h y detecta anomalías de red de forma predictiva', () => {
+    const serie = [12, 14, 16, 19, 21, 24];
+    const proy = OTechCore.proyectarTendencia24h(serie, 6);
+    assert.equal(proy.length, 6);
+    assert.ok(proy[0] > 24);
+
+    const anomalias = OTechCore.detectarAnomaliasRed([
+      { serial: 'OT-1', sede: 'A', bateria: 98, estado: 'OPERATIVO_ONLINE', lecturas: { PM2_5: 12 } },
+      { serial: 'OT-2', sede: 'B', bateria: 96, estado: 'OPERATIVO_ONLINE', lecturas: { PM2_5: 14 } },
+      { serial: 'OT-3', sede: 'C', bateria: 80, estado: 'ADVERTENCIA_MODERADA', lecturas: { PM2_5: 48 } }
+    ]);
+    assert.ok(anomalias.some(a => a.serial === 'OT-3' && a.tipo === 'BATERIA_BAJA'));
+    assert.ok(anomalias.some(a => a.serial === 'OT-3' && a.tipo === 'POSIBLE_DERIVA_OPTICA'));
+  });
 });
 
 describe('OTech AirNet Core — Catálogo Canónico de 8 Estaciones', () => {
@@ -98,6 +113,7 @@ describe('Offline Readiness, Enlaces Locales y Contratos DOM/JS', () => {
     'index.html',
     'gemelo_digital_3d/index.html',
     'plataforma_web/portal.html',
+    'plataforma_web/publico.html',
     'plataforma_web/mapa-estaciones.html',
     'plataforma_web/index.html'
   ];
@@ -206,7 +222,13 @@ describe('Offline Readiness, Enlaces Locales y Contratos DOM/JS', () => {
       'form-generar-reporte',
       'rep-tipo',
       'rep-inicio',
-      'rep-fin'
+      'rep-fin',
+      'panel-predictivo',
+      'equipo-comparar',
+      'chk-pronostico-24h',
+      'btn-toggle-theme',
+      'btn-toggle-sound',
+      'btn-ver-en-3d'
     ];
 
     for (const id of requiredIds) {
@@ -214,14 +236,23 @@ describe('Offline Readiness, Enlaces Locales y Contratos DOM/JS', () => {
     }
   });
 
-  it('gemelo_digital_3d/index.html incluye clima smog, pill de telemetría y airnet-core.js', () => {
+  it('gemelo_digital_3d/index.html incluye clima smog, tour guiado, pill de telemetría y airnet-core.js', () => {
     const html3d = fs.readFileSync(path.join(ROOT, 'gemelo_digital_3d', 'index.html'), 'utf8');
     assert.ok(html3d.includes('data-weather="smog"'));
+    assert.ok(html3d.includes('id="btn-plant-tour"'));
     assert.ok(html3d.includes('id="hud-live-telemetry-badge"'));
     assert.ok(html3d.includes('id="hud-live-telemetry-text"'));
     const idxCore = html3d.indexOf('../plataforma_web/airnet-core.js');
     const idxApp = html3d.indexOf('app.js');
     assert.ok(idxCore !== -1 && idxApp !== -1 && idxCore < idxApp, 'airnet-core.js debe cargarse antes que app.js');
+  });
+
+  it('verifica infraestructura PWA (manifest, sw.js) y workflow CI en .github/workflows/ci.yml', () => {
+    assert.ok(fs.existsSync(path.join(ROOT, 'manifest.webmanifest')));
+    assert.ok(fs.existsSync(path.join(ROOT, 'sw.js')));
+    assert.ok(fs.existsSync(path.join(ROOT, '.github', 'workflows', 'ci.yml')));
+    const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'manifest.webmanifest'), 'utf8'));
+    assert.equal(manifest.display, 'standalone');
   });
 
   it('sin referencias obsoletas a ENTREGA_FINAL_OTECH_PLATAFORMA_WEB en docs y package.json', () => {
@@ -237,7 +268,8 @@ describe('Offline Readiness, Enlaces Locales y Contratos DOM/JS', () => {
       'plataforma_web/mapa-estaciones.js',
       'plataforma_web/panel-empresa.js',
       'plataforma_web/portal-auth.js',
-      'gemelo_digital_3d/app.js'
+      'gemelo_digital_3d/app.js',
+      'sw.js'
     ];
     for (const rel of scripts) {
       const code = fs.readFileSync(path.join(ROOT, rel), 'utf8');
@@ -270,3 +302,4 @@ describe('Integridad de Migraciones SQL (database/)', () => {
     }
   });
 });
+

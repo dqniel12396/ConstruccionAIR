@@ -1,0 +1,31 @@
+name: OTech AirNet QA & CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verificar sintaxis JavaScript
+        run: |
+          node --check plataforma_web/airnet-core.js
+          node --check plataforma_web/mapa-estaciones.js
+          node --check plataforma_web/panel-empresa.js
+          node --check plataforma_web/portal-auth.js
+          node --check gemelo_digital_3d/app.js
+          node --check sw.js
+
+      - name: Ejecutar suite automatizada OTech AirNet
+        run: npm --prefix database test

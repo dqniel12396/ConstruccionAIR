@@ -104,10 +104,28 @@ function limpiarEmpresa() {
   if (el('buscar-equipo')) el('buscar-equipo').value = '';
 }
 
+let currentFichaSerial = null;
+
 function abrirFichaEquipo(estacion) {
   const modal = el('modal-ficha-equipo');
   if (!modal || !estacion) return;
+  currentFichaSerial = estacion.serial;
   el('ficha-titulo').textContent = `${estacion.serial} — ${estacion.sede}`;
+  const btnVer3d = el('btn-ver-en-3d');
+  if (btnVer3d) {
+    btnVer3d.href = `../gemelo_digital_3d/index.html?serial=${encodeURIComponent(estacion.serial)}&action=focus_station`;
+    btnVer3d.onclick = () => {
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          new BroadcastChannel('otech-airnet-sync').postMessage({
+            type: 'command_3d',
+            action: 'focus_station',
+            serial: estacion.serial
+          });
+        }
+      } catch {}
+    };
+  }
   el('ficha-chip').textContent = estacion.chip_id || `ATECC608A-${estacion.serial}`;
   el('ficha-firmware').textContent = estacion.firmware || 'OTech-OS v2.4.3-ESP32S3';
   el('ficha-modelo').textContent = estacion.modelo || 'OTech-AirNet-Outdoor-IP65';
@@ -152,6 +170,15 @@ if (btnDiagnostico) {
     const res = el('ficha-diagnostico-res');
     if (!res) return;
     res.textContent = 'Consultando nodo vía LoRaWAN Downlink…';
+    try {
+      if (typeof BroadcastChannel !== 'undefined' && currentFichaSerial) {
+        new BroadcastChannel('otech-airnet-sync').postMessage({
+          type: 'command_3d',
+          action: 'diagnostico',
+          serial: currentFichaSerial
+        });
+      }
+    } catch {}
     setTimeout(() => {
       res.textContent = '✓ OK · Bus I2C estable (0 errores CRC) · Turbina SPS30 4.820 RPM · RSSI -84 dBm (SNR +7.5 dB).';
       notificarAccion('Autodiagnóstico remoto completado sin fallos.');
@@ -206,9 +233,11 @@ if (el('exportar-equipos')) {
 function mostrarSerie() {
   if (!datosEmpresa?.serie) return;
   const equipo = el('equipo-serie')?.value;
+  const equipoComparar = el('equipo-comparar')?.value;
   const variable = el('variable-serie')?.value;
   const compararKohler = Boolean(el('chk-comparar-kohler')?.checked);
   const mostrarOms = Boolean(el('chk-limite-oms')?.checked);
+  const mostrarPronostico = Boolean(el('chk-pronostico-24h')?.checked);
   const serie = datosEmpresa.serie.filter(v => v.serial === equipo && v.variable === variable);
   const horas = Number(el('periodo')?.value || 0);
   const inicio = serie.length && horas ? Date.parse(serie.at(-1).fecha) - horas * 3600000 : -Infinity;
@@ -216,10 +245,12 @@ function mostrarSerie() {
 
   grafica?.destroy(); grafica = null;
   if (window.Chart && filas.length) {
+    let labels = filas.map(v => fechaLocal(v.fecha));
+    const valoresBase = filas.map(v => v.valor);
     const datasets = [
       {
-        label: (variables[variable] ?? variable) + (variable.startsWith('PM') ? ' Compensado κ-Köhler (' : ' (') + filas[0].unidad + ')',
-        data: filas.map(v => v.valor),
+        label: `${equipo} · ` + (variables[variable] ?? variable) + (variable.startsWith('PM') ? ' κ-Köhler (' : ' (') + filas[0].unidad + ')',
+        data: valoresBase,
         borderColor: '#2dd4bf',
         backgroundColor: 'rgba(45, 212, 191, 0.12)',
         borderWidth: 2.5,
@@ -240,11 +271,44 @@ function mostrarSerie() {
       });
     }
 
+    if (equipoComparar && equipoComparar !== equipo) {
+      const filasComp = datosEmpresa.serie.filter(
+        v => v.serial === equipoComparar && v.variable === variable && Date.parse(v.fecha) > inicio
+      );
+      if (filasComp.length) {
+        datasets.push({
+          label: `${equipoComparar} (Comparativa ${filasComp[0].unidad})`,
+          data: filasComp.slice(-filas.length).map(v => v.valor),
+          borderColor: '#a855f7',
+          borderWidth: 2,
+          tension: 0.25,
+          pointRadius: 1.5
+        });
+      }
+    }
+
+    if (mostrarPronostico && window.OTechCore?.proyectarTendencia24h) {
+      const pasos = 6;
+      const futuro = window.OTechCore.proyectarTendencia24h(valoresBase, pasos);
+      const nullsAntes = new Array(Math.max(0, valoresBase.length - 1)).fill(null);
+      const seriePronostico = [...nullsAntes, valoresBase.at(-1), ...futuro];
+      labels = [...labels, '+4h', '+8h', '+12h', '+16h', '+20h', '+24h'];
+      datasets.push({
+        label: 'Pronóstico Tendencia +24h',
+        data: seriePronostico,
+        borderColor: '#38bdf8',
+        borderDash: [6, 4],
+        borderWidth: 2,
+        tension: 0.3,
+        pointRadius: 2.5
+      });
+    }
+
     if (mostrarOms && (variable === 'PM2_5' || variable === 'PM10')) {
       const limiteOms = variable === 'PM2_5' ? 15.0 : 45.0;
       datasets.push({
         label: `Límite Diario OMS (${limiteOms} µg/m³)`,
-        data: filas.map(() => limiteOms),
+        data: labels.map(() => limiteOms),
         borderColor: '#ef4444',
         borderDash: [3, 3],
         borderWidth: 1.5,
@@ -254,7 +318,7 @@ function mostrarSerie() {
 
     grafica = new Chart(el('grafica'), {
       type: 'line',
-      data: { labels: filas.map(v => fechaLocal(v.fecha)), datasets },
+      data: { labels, datasets },
       options: {
         maintainAspectRatio: false,
         animation: false,
@@ -319,10 +383,12 @@ function variablesEstacion() {
   mostrarSerie();
 }
 if (el('equipo-serie')) el('equipo-serie').onchange = variablesEstacion;
+if (el('equipo-comparar')) el('equipo-comparar').onchange = mostrarSerie;
 if (el('variable-serie')) el('variable-serie').onchange = mostrarSerie;
 if (el('periodo')) el('periodo').onchange = mostrarSerie;
 if (el('chk-comparar-kohler')) el('chk-comparar-kohler').onchange = mostrarSerie;
 if (el('chk-limite-oms')) el('chk-limite-oms').onchange = mostrarSerie;
+if (el('chk-pronostico-24h')) el('chk-pronostico-24h').onchange = mostrarSerie;
 
 async function cambiarEstadoIncidente(alerta, nuevoEstado) {
   let bitacora = alerta.bitacora || '';
@@ -677,10 +743,78 @@ if (formReporte) {
   });
 }
 
+function renderPredictivo() {
+  const cont = el('panel-predictivo');
+  if (!cont || !datosEmpresa?.estaciones || !window.OTechCore?.detectarAnomaliasRed) return;
+  cont.replaceChildren();
+  const hallazgos = window.OTechCore.detectarAnomaliasRed(datosEmpresa.estaciones);
+  hallazgos.forEach(h => {
+    const row = document.createElement('div');
+    row.className = 'predictivo-item';
+    const txt = document.createElement('span');
+    txt.textContent = `⚠ Mantenimiento Predictivo (${h.serial} · ${h.sede}): ${h.mensaje}`;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn-accion-sm';
+    btn.textContent = 'Programar Preventivo';
+    btn.onclick = () => {
+      if (el('orden-serial')) el('orden-serial').value = h.serial;
+      if (el('orden-tipo')) el('orden-tipo').value = h.tipo === 'BATERIA_BAJA' ? 'INSPECCION_BATERIA' : 'CALIBRACION_OPTICA';
+      if (el('orden-obs')) el('orden-obs').value = h.mensaje;
+      if (typeof window.switchTab === 'function') window.switchTab('tab-mantenimiento');
+      notificarAccion(`Orden preventiva pre-cargada para ${h.serial}.`);
+    };
+    row.append(txt, btn);
+    cont.append(row);
+  });
+}
+
+let soundAlertsEnabled = true;
+function reproducirBeepAlerta() {
+  if (!soundAlertsEnabled) return;
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 880;
+    gain.gain.value = 0.04;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.14);
+  } catch {}
+}
+
+function inicializarPreferenciasUI() {
+  const savedTheme = (() => { try { return localStorage.getItem('otech_theme'); } catch { return null; } })();
+  if (savedTheme === 'light') document.body.classList.add('theme-light');
+  const btnTheme = el('btn-toggle-theme');
+  if (btnTheme) {
+    btnTheme.onclick = () => {
+      const isLight = document.body.classList.toggle('theme-light');
+      try { localStorage.setItem('otech_theme', isLight ? 'light' : 'dark'); } catch {}
+      notificarAccion(isLight ? 'Tema Claro activado (alto contraste).' : 'Tema Oscuro NOC activado.');
+    };
+  }
+  const btnSound = el('btn-toggle-sound');
+  if (btnSound) {
+    btnSound.onclick = () => {
+      soundAlertsEnabled = !soundAlertsEnabled;
+      btnSound.style.opacity = soundAlertsEnabled ? '1' : '0.45';
+      notificarAccion(soundAlertsEnabled ? 'Alertas sonoras activadas.' : 'Alertas sonoras silenciadas.', 'warn');
+    };
+  }
+}
+inicializarPreferenciasUI();
+
 function poblarSelectoresEstacion() {
   if (!datosEmpresa?.estaciones) return;
   const seriales = datosEmpresa.estaciones.map(e => [e.serial, `${e.serial} · ${e.sede}`]);
   opciones('equipo-serie', seriales);
+  opciones('equipo-comparar', [['', 'Sin comparación'], ...seriales]);
   opciones('orden-serial', seriales);
   opciones('regla-serial', [['TODAS', 'TODAS LAS ESTACIONES'], ...seriales]);
 }
@@ -690,6 +824,7 @@ function mostrarEmpresa(datos) {
   datosEmpresa = datos;
   const equipos = datos.estaciones || [];
   renderResumenKPIs();
+  renderPredictivo();
   actualizarContadoresGlobales();
 
   cerrarMapa = iniciarMapa(equipos.map(e => ({
@@ -726,6 +861,10 @@ function procesarTelemetria3D(msg) {
   est.lecturas.TEMP = msg.temp;
   est.conexion = msg.fecha || new Date().toISOString();
 
+  if (Number(msg.pm25) > 55.4) {
+    reproducirBeepAlerta();
+  }
+
   if (datosEmpresa.serie) {
     const fecha = est.conexion;
     datosEmpresa.serie.push(
@@ -737,12 +876,13 @@ function procesarTelemetria3D(msg) {
   }
 
   if (typeof window.setTelemetryModeBadge === 'function') {
-    window.setTelemetryModeBadge('Sincronizado con Gemelo 3D (' + (msg.weatherLabel || 'Live') + ')', true);
+    window.setTelemetryModeBadge('Sincronizado con Gemelo 3D (' + (msg.weatherLabel || msg.weather || 'Live') + ')', true);
   }
   if (typeof window.refrescarEstacionMapa === 'function') {
     window.refrescarEstacionMapa(est.serial, { pm25: msg.pm25, pm10: msg.pm10, hr: msg.hr, temp: msg.temp });
   }
   renderResumenKPIs();
+  renderPredictivo();
   tabla('lecturas', ['Estación', 'Sede', 'PM2.5 (µg/m³)', 'PM10 (µg/m³)', 'Humedad (%)', 'Temperatura (°C)'],
     datosEmpresa.estaciones.map(e => [e.serial, e.sede, ...['PM2_5', 'PM10', 'HUM', 'TEMP'].map(k => e.lecturas?.[k])]));
 

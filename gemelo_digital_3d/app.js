@@ -3868,6 +3868,11 @@ function setupUIEvents() {
   // Hotspot Close Button
   document.getElementById('hotspot-close').addEventListener('click', hideHotspot);
 
+  const tourBtn = document.getElementById('btn-plant-tour');
+  if (tourBtn) {
+    tourBtn.addEventListener('click', () => togglePlantTour());
+  }
+
   // Función global para Expandir / Colapsar todos los acordeones del tab activo
   window.toggleAllAccordions = function(paneId) {
     const pane = document.getElementById(paneId);
@@ -6417,9 +6422,97 @@ function hideHotspot() {
   state.selectedStation = null;
 }
 
+var plantTourActive = false;
+var plantTourTimer = null;
+var plantTourStep = 0;
+
+function togglePlantTour(forceState) {
+  plantTourActive = typeof forceState === 'boolean' ? forceState : !plantTourActive;
+  const btn = document.getElementById('btn-plant-tour');
+  const txt = document.getElementById('plant-tour-text');
+  if (btn) btn.classList.toggle('active', plantTourActive);
+  if (txt) txt.textContent = plantTourActive ? 'Pausar Tour' : 'Tour Guiado';
+
+  if (plantTourTimer) {
+    clearInterval(plantTourTimer);
+    plantTourTimer = null;
+  }
+  if (!plantTourActive || typeof camera === 'undefined' || typeof controls === 'undefined') return;
+
+  const waypoints = [
+    { label: '1/5 Fachada & Acceso Principal', pos: [0, 28, 120], target: [0, 8, 0] },
+    { label: '2/5 Piso 1: Línea de Ensamble IoT', pos: [-55, 22, 48], target: [-15, 6, 0] },
+    { label: '3/5 Piso 2: R&D y Calibración κ-Köhler', pos: [45, 36, 45], target: [10, 18, -5] },
+    { label: '4/5 Planta de Tratamiento (PTAR)', pos: [-95, 24, -55], target: [-60, 8, -35] },
+    { label: '5/5 Zona Logística & Despacho', pos: [90, 28, -45], target: [45, 6, -15] }
+  ];
+
+  const moverA = wp => {
+    camera.position.set(wp.pos[0], wp.pos[1], wp.pos[2]);
+    controls.target.set(wp.target[0], wp.target[1], wp.target[2]);
+    controls.update();
+    const hudText = document.getElementById('hud-live-telemetry-text');
+    if (hudText) hudText.textContent = `Tour 3D: ${wp.label}`;
+  };
+
+  moverA(waypoints[plantTourStep % waypoints.length]);
+  plantTourTimer = setInterval(() => {
+    if (!plantTourActive) return;
+    plantTourStep = (plantTourStep + 1) % waypoints.length;
+    moverA(waypoints[plantTourStep]);
+  }, 4500);
+}
+
+function ejecutarComandoWeb3D(cmd) {
+  if (!cmd) return;
+  const serial = cmd.serial || 'OT-CORF-01';
+  const hudText = document.getElementById('hud-live-telemetry-text');
+  if (cmd.action === 'diagnostico') {
+    if (materialsMap.ledRing && ledRingLight) {
+      const prevColor = ledRingLight.color.getHex();
+      materialsMap.ledRing.color.set(0x38bdf8);
+      ledRingLight.color.set(0x38bdf8);
+      ledRingLight.intensity = 4.0;
+      setTimeout(() => {
+        if (materialsMap.ledRing) materialsMap.ledRing.color.setHex(prevColor);
+        if (ledRingLight) { ledRingLight.color.setHex(prevColor); ledRingLight.intensity = 1.8; }
+      }, 1500);
+    }
+    if (hudText) hudText.textContent = `Autodiagnóstico Remoto OK (${serial}) · Sync Web`;
+    emitirTelemetria3D(true);
+  } else if (cmd.action === 'focus_station') {
+    if (typeof setCameraView === 'function') setCameraView('isometric');
+    if (hudText) hudText.textContent = `Estación Enfocada: ${serial} · Sync Web`;
+    emitirTelemetria3D(true);
+  }
+}
+
 function startTelemetrySyncLoop() {
   initApp();
   emitirTelemetria3D(true);
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const qSerial = params.get('serial');
+    const qAction = params.get('action') || (qSerial ? 'focus_station' : '');
+    if (qAction) {
+      setTimeout(() => ejecutarComandoWeb3D({ serial: qSerial, action: qAction }), 600);
+    }
+  } catch (e) {}
+
+  try {
+    if (!otechBroadcastChannel && typeof BroadcastChannel !== 'undefined') {
+      otechBroadcastChannel = new BroadcastChannel('otech-airnet-sync');
+    }
+    if (otechBroadcastChannel) {
+      otechBroadcastChannel.onmessage = ev => {
+        if (ev.data && ev.data.type === 'command_3d') {
+          ejecutarComandoWeb3D(ev.data);
+        }
+      };
+    }
+  } catch (e) {}
+
   setInterval(() => {
     if (typeof state !== 'undefined' && state.simRunning) {
       emitirTelemetria3D(false);
