@@ -3,11 +3,15 @@
    ========================================================================= */
 
 .panel-empresa {
-  padding: clamp(16px, 3vw, 30px);
+  padding: clamp(16px, 3vw, 28px);
   border: 1px solid #1f2937;
   border-radius: 16px;
   background: #0d131f;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .panel-empresa h2 {
@@ -108,21 +112,24 @@
 .tabla-empresa {
   overflow: auto;
   max-height: 460px;
+  width: 100%;
+  max-width: 100%;
   margin-top: 14px;
   border-radius: 12px;
   border: 1px solid #1e293b;
   background: #0a0f18;
+  box-sizing: border-box;
 }
 
 .tabla-empresa table {
   width: 100%;
-  font-size: 13.5px;
+  font-size: 12.5px;
   border-collapse: collapse;
 }
 
 .tabla-empresa td, .tabla-empresa th {
   text-align: left;
-  padding: 12px 14px;
+  padding: 10px 11px;
   border-bottom: 1px solid #1e293b;
   white-space: nowrap;
 }
@@ -804,41 +811,248 @@
   font-size: 0.78rem;
 }
 
-/* Modo Claro (Exterior / Proyector) */
+/* Modo Claro (Exterior / Proyector) — Contraste completo */
 body.theme-light {
   background-color: #f1f5f9 !important;
   color: #0f172a !important;
 }
 
-body.theme-light header,
-body.theme-light nav,
-body.theme-light .panel-empresa,
-body.theme-light .resumen > div,
-body.theme-light .form-otech,
-body.theme-light .modal-ficha-card {
+body.theme-light header {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+body.theme-light .otech-brand-title {
+  background: none !important;
+  -webkit-text-fill-color: #0f172a !important;
+  color: #0f172a !important;
+}
+
+body.theme-light header .border-slate-800\/60,
+body.theme-light header .border-slate-700\/60,
+body.theme-light header .border-slate-700\/80,
+body.theme-light header .border-slate-700 {
+  border-color: #cbd5e1 !important;
+}
+
+body.theme-light header .bg-slate-900,
+body.theme-light header .bg-slate-900\/90,
+body.theme-light header .bg-slate-800\/80,
+body.theme-light header #logout {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+body.theme-light header .bg-slate-900:hover,
+body.theme-light header .bg-slate-800\/80:hover,
+body.theme-light header #logout:hover {
+  background-color: #e2e8f0 !important;
+}
+
+body.theme-light header .text-slate-200,
+body.theme-light header .text-slate-300 {
+  color: #1e293b !important;
+}
+
+body.theme-light header .text-slate-400 {
+  color: #475569 !important;
+}
+
+body.theme-light header .text-teal-300,
+body.theme-light header .text-teal-400 {
+  color: #0f766e !important;
+}
+
+body.theme-light header .text-sky-300,
+body.theme-light header .text-sky-400 {
+  color: #0369a1 !important;
+}
+
+body.theme-light #telemetry-mode-pill {
+  background-color: #ecfdf5 !important;
+  border-color: #6ee7b7 !important;
+  color: #065f46 !important;
+}
+
+body.theme-light header .group > div {
   background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.theme-light header .group > div button {
+  color: #0f172a !important;
+}
+
+body.theme-light header .group > div button:hover {
+  background-color: #f1f5f9 !important;
+}
+
+body.theme-light .tab-btn {
+  color: #334155 !important;
+}
+
+body.theme-light .tab-btn:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+body.theme-light .tab-btn.bg-teal-500\/15 {
+  background-color: #ccfbf1 !important;
+  color: #0f766e !important;
+  border-color: #14b8a6 !important;
+}
+
+body.theme-light #badge-online-count {
+  background-color: #ccfbf1 !important;
+  color: #0f766e !important;
+}
+
+body.theme-light #badge-alertas-count {
+  background-color: #ffe4e6 !important;
+  color: #be123c !important;
+}
+
+body.theme-light .panel-empresa {
+  background: #ffffff !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08) !important;
 }
 
 body.theme-light .panel-empresa h2,
 body.theme-light .panel-empresa h3,
-body.theme-light .resumen strong {
+body.theme-light .filtros label,
+body.theme-light .map-head label {
   color: #0f172a !important;
 }
 
-body.theme-light .tabla-empresa table th {
+body.theme-light .map-head {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.theme-light .resumen > div {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05) !important;
+}
+
+body.theme-light .resumen strong {
+  color: #0f766e !important;
+}
+
+body.theme-light .panel-empresa input,
+body.theme-light .panel-empresa select {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+body.theme-light .panel-empresa button:not(.btn-accion-sm) {
+  color: #ffffff !important;
+}
+
+body.theme-light .btn-accion-sm {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+body.theme-light .btn-accion-sm:hover {
   background: #e2e8f0 !important;
-  color: #334155 !important;
+  border-color: #0d9488 !important;
+  color: #0f766e !important;
+}
+
+body.theme-light .tabla-empresa {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.theme-light .tabla-empresa table th {
+  background: #f1f5f9 !important;
+  color: #0f766e !important;
+  border-bottom: 1px solid #cbd5e1 !important;
 }
 
 body.theme-light .tabla-empresa table td {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+body.theme-light .tabla-empresa tr:hover td {
+  background: #f8fafc !important;
+}
+
+body.theme-light .badge-ok {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+  border-color: #86efac !important;
+}
+
+body.theme-light .badge-warn {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+  border-color: #fcd34d !important;
+}
+
+body.theme-light .badge-danger {
+  background: #ffe4e6 !important;
+  color: #9f1239 !important;
+  border-color: #fda4af !important;
+}
+
+body.theme-light .form-otech,
+body.theme-light #stats-kpi-bar > div,
+body.theme-light .stats-kpi-pill {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.theme-light .form-otech label {
+  color: #334155 !important;
+}
+
+body.theme-light .modal-ficha-card {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.theme-light .modal-ficha-card h3,
+body.theme-light .modal-ficha-card h4 {
+  color: #0f172a !important;
+}
+
+body.theme-light .modal-ficha-card .bg-slate-900\/70 {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.theme-light .modal-ficha-card .text-slate-200 {
+  color: #0f172a !important;
+}
+
+body.theme-light .modal-ficha-card .text-slate-400 {
+  color: #475569 !important;
+}
+
+body.theme-light #ficha-sensores-table th {
+  background: #f1f5f9 !important;
+  color: #0f766e !important;
+}
+
+body.theme-light #ficha-sensores-table td {
   color: #1e293b !important;
   border-color: #e2e8f0 !important;
 }
 
 body.theme-light .predictivo-item {
-  background: #fef3c7;
-  color: #78350f;
-  border-color: #f59e0b;
+  background: #fef3c7 !important;
+  color: #78350f !important;
+  border-color: #f59e0b !important;
 }
