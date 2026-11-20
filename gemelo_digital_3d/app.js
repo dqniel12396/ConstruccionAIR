@@ -2142,6 +2142,7 @@ function buildPlant3D() {
   const mullionCoords = [];
   for (let mx = -96; mx <= 96; mx += 16) mullionCoords.push(mx);
   const mullionInst = new THREE.InstancedMesh(mullionGeo, mullionMat, mullionCoords.length);
+  const instDummy = new THREE.Object3D();
   mullionCoords.forEach((mx, idx) => {
     instDummy.position.set(mx, 15, 96);
     instDummy.rotation.set(0, 0, 0);
