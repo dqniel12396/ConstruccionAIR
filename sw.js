@@ -1,4 +1,4 @@
-const CACHE_NAME = 'otech-airnet-v3';
+const CACHE_NAME = 'otech-airnet-v4';
 const PRECACHE_URLS = [
   './',
   './index.html',
