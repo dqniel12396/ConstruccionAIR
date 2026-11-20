@@ -1,4 +1,4 @@
-const CACHE_NAME = 'otech-airnet-v2';
+const CACHE_NAME = 'otech-airnet-v3';
 const PRECACHE_URLS = [
   './',
   './index.html',
@@ -43,17 +43,33 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
+  // Cache-first solo para librerías vendored pesadas; Network-first para HTML/CSS/JS de la app
+  const isVendorAsset = url.pathname.includes('/assets/vendor/');
+  if (isVendorAsset) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(resp => {
+          if (resp && resp.status === 200) {
+            const copy = resp.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+          }
+          return resp;
+        });
+      })
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
-      return fetch(event.request).then(resp => {
+    fetch(event.request)
+      .then(resp => {
         if (resp && resp.status === 200) {
           const copy = resp.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
         }
         return resp;
-      }).catch(() => cached || Response.error());
-    })
+      })
+      .catch(() => caches.match(event.request).then(cached => cached || Response.error()))
   );
 });
-
