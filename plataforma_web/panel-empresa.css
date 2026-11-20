@@ -1056,3 +1056,135 @@ body.theme-light .predictivo-item {
   color: #78350f !important;
   border-color: #f59e0b !important;
 }
+
+/* Panel Unificado Estado Ambiental General (ICA / OMS) en Dashboard */
+.dash-aqi-widget {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 18px;
+  margin: 14px 0 18px;
+  padding: 18px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(17, 24, 39, 0.92), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(45, 212, 191, 0.25);
+}
+
+@media (max-width: 900px) {
+  .dash-aqi-widget {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dash-aqi-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dash-aqi-kicker {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #2dd4bf;
+}
+
+.dash-station-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.dash-advisory {
+  margin: 10px 0 14px;
+  font-size: 0.84rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+.dash-recs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.dash-rec-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(51, 65, 85, 0.75);
+}
+
+.dash-rec-card strong {
+  display: block;
+  font-size: 0.74rem;
+  color: #5eead4;
+  margin-bottom: 4px;
+}
+
+.dash-rec-card p {
+  margin: 0;
+  font-size: 0.74rem;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+.dash-aqi-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(10, 15, 24, 0.85);
+  border: 1px solid rgba(51, 65, 85, 0.8);
+}
+
+.dash-aqi-num {
+  font-size: 2.8rem;
+  font-weight: 900;
+  font-family: 'JetBrains Mono', monospace;
+  line-height: 1;
+}
+
+.dash-aqi-score small {
+  font-size: 0.7rem;
+  color: #94a3b8;
+}
+
+body.theme-light .dash-aqi-widget {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.theme-light .dash-aqi-kicker {
+  color: #0f766e !important;
+}
+
+body.theme-light .dash-advisory,
+body.theme-light .dash-station-label {
+  color: #334155 !important;
+}
+
+body.theme-light .dash-rec-card,
+body.theme-light .dash-aqi-score {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.theme-light .dash-rec-card strong {
+  color: #0f766e !important;
+}
+
+body.theme-light .dash-rec-card p,
+body.theme-light .dash-aqi-score small {
+  color: #475569 !important;
+}

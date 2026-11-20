@@ -810,6 +810,79 @@ function inicializarPreferenciasUI() {
 }
 inicializarPreferenciasUI();
 
+function recomendacionesOperativasAQI(aqi) {
+  if (aqi <= 50) {
+    return {
+      operacion: 'Operación normal en todas las áreas. Condiciones óptimas para ventilación natural.',
+      sensible: 'Sin restricciones para brigadas SST ni personal con sensibilidad respiratoria.',
+      exteriores: 'Apto para labores en campo, logística externa y mantenimiento sin equipo especial.'
+    };
+  }
+  if (aqi <= 100) {
+    return {
+      operacion: 'Operación estándar. Monitorear tendencia horaria en zonas de carga.',
+      sensible: 'Personal con antecedentes respiratorios debe evitar esfuerzos prolongados en exteriores.',
+      exteriores: 'Priorizar rotación en patios abiertos y pausas de hidratación.'
+    };
+  }
+  if (aqi <= 150) {
+    return {
+      operacion: 'Activar protocolo preventivo: verificar filtros HVAC y reducir emisiones en patio.',
+      sensible: 'Reubicar personal sensible a áreas interiores con filtración controlada.',
+      exteriores: 'Limitar trabajos físicos intensos al aire libre y usar protección N95 en zonas críticas.'
+    };
+  }
+  return {
+    operacion: 'Alerta ambiental crítica: activar plan de contingencia y mitigar fuentes de material particulado.',
+    sensible: 'Restringir exposición externa; mantener personal en recintos filtrados.',
+    exteriores: 'Uso obligatorio de respirador N95/KN95 y suspensión de faenas no esenciales en exteriores.'
+  };
+}
+
+function renderDashboardAQI() {
+  const widget = el('dash-aqi-widget');
+  const sel = el('dash-station-select');
+  if (!widget || !sel || !datosEmpresa?.estaciones?.length) return;
+
+  const estaciones = datosEmpresa.estaciones;
+  const previa = sel.value;
+  sel.replaceChildren(...estaciones.map(e => new Option(`${e.serial} · ${e.sede}`, e.serial)));
+  sel.value = estaciones.some(e => e.serial === previa) ? previa : estaciones[0].serial;
+
+  const pintar = () => {
+    const est = estaciones.find(e => e.serial === sel.value) || estaciones[0];
+    const pm25 = Number(est.lecturas?.PM2_5 ?? 0);
+    const core = window.OTechCore;
+    const aqi = core?.calcularAQI_PM25 ? (core.calcularAQI_PM25(pm25) ?? 0) : Math.round(pm25 * 2.5);
+    const info = core?.getAQIInfo ? core.getAQIInfo('pm25', pm25) : { etiqueta: 'Normal', color: '#10b981', bg: 'rgba(16,185,129,0.2)', texto: '#34d399', advisory: '' };
+    const recs = recomendacionesOperativasAQI(aqi);
+
+    if (el('dash-station-title')) el('dash-station-title').textContent = `${est.sede} (${est.serial})`;
+    if (el('dash-advisory')) el('dash-advisory').textContent = info.advisory || 'Lectura validada con compensación κ-Köhler.';
+    if (el('dash-aqi-value')) {
+      el('dash-aqi-value').textContent = String(aqi);
+      el('dash-aqi-value').style.color = info.color;
+    }
+    if (el('dash-aqi-label')) {
+      el('dash-aqi-label').textContent = info.etiqueta;
+      el('dash-aqi-label').style.background = info.bg;
+      el('dash-aqi-label').style.color = info.texto;
+    }
+    if (el('dash-aqi-card')) el('dash-aqi-card').style.borderColor = info.color;
+    if (el('dash-norm-oms')) {
+      el('dash-norm-oms').textContent = pm25 <= 15
+        ? `Cumple guía OMS (≤ 15 µg/m³ · Actual: ${pm25.toFixed(1)})`
+        : `Excede guía OMS (15 µg/m³) en ${(pm25 - 15).toFixed(1)} µg/m³`;
+    }
+    if (el('dash-rec-operacion')) el('dash-rec-operacion').textContent = recs.operacion;
+    if (el('dash-rec-sensible')) el('dash-rec-sensible').textContent = recs.sensible;
+    if (el('dash-rec-exteriores')) el('dash-rec-exteriores').textContent = recs.exteriores;
+  };
+
+  sel.onchange = pintar;
+  pintar();
+}
+
 function poblarSelectoresEstacion() {
   if (!datosEmpresa?.estaciones) return;
   const seriales = datosEmpresa.estaciones.map(e => [e.serial, `${e.serial} · ${e.sede}`]);
@@ -825,7 +898,15 @@ function mostrarEmpresa(datos) {
   const equipos = datos.estaciones || [];
   renderResumenKPIs();
   renderPredictivo();
+  renderDashboardAQI();
+  renderDashboardAQI();
   actualizarContadoresGlobales();
+
+  const tituloMapa = el('titulo-mapa-empresa');
+  if (tituloMapa) {
+    const orgTxt = el('profile-org')?.textContent?.trim() || datos.organizacion || 'Empresa';
+    tituloMapa.textContent = `Mapa de estaciones · ${orgTxt}`;
+  }
 
   cerrarMapa = iniciarMapa(equipos.map(e => ({
     nombre: e.sede,
@@ -883,6 +964,7 @@ function procesarTelemetria3D(msg) {
   }
   renderResumenKPIs();
   renderPredictivo();
+  renderDashboardAQI();
   tabla('lecturas', ['Estación', 'Sede', 'PM2.5 (µg/m³)', 'PM10 (µg/m³)', 'Humedad (%)', 'Temperatura (°C)'],
     datosEmpresa.estaciones.map(e => [e.serial, e.sede, ...['PM2_5', 'PM10', 'HUM', 'TEMP'].map(k => e.lecturas?.[k])]));
 

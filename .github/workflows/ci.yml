@@ -29,3 +29,4 @@ jobs:
 
       - name: Ejecutar suite automatizada OTech AirNet
         run: npm --prefix database test
+

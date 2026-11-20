@@ -100,6 +100,7 @@ describe('OTech AirNet Core — Catálogo Canónico de 8 Estaciones', () => {
 
     for (const est of estaciones) {
       assert.match(est.serial, /^OT-/);
+      assert.ok(est.empresa && est.empresaNombre, `Falta empresa en ${est.serial}`);
       assert.ok(est.lat >= 4.4 && est.lat <= 5.1, `Lat fuera de rango en ${est.serial}: ${est.lat}`);
       assert.ok(est.lon >= -74.4 && est.lon <= -73.8, `Lon fuera de rango en ${est.serial}: ${est.lon}`);
       assert.ok(est.chip_id && est.modelo && est.firmware && est.manufactura);
@@ -276,11 +277,22 @@ describe('Offline Readiness, Enlaces Locales y Contratos DOM/JS', () => {
       assert.doesNotThrow(() => new vm.Script(code, { filename: rel }));
     }
   });
+  it('portal.html exige login real sin accesos directos y expone los IDs unificados', () => {
+    const portalHtml = fs.readFileSync(path.join(ROOT, 'plataforma_web', 'portal.html'), 'utf8');
+    const portalAuthJs = fs.readFileSync(path.join(ROOT, 'plataforma_web', 'portal-auth.js'), 'utf8');
+    assert.equal(portalHtml.includes('ingresarConRol'), false, 'No debe haber accesos directos sin clave en portal.html');
+    assert.equal(portalHtml.includes('btn-demo-mode'), false, 'No debe existir botón demo en portal.html');
+    assert.equal(portalAuthJs.includes('ingresarConRol'), false, 'No debe existir ingresarConRol en portal-auth.js');
+
+    for (const id of ['dash-aqi-widget', 'dash-station-select', 'wrap-org-admin', 'select-org-admin', 'toggle-password']) {
+      assert.ok(portalHtml.includes(`id="${id}"`), `Falta id="${id}" en portal.html`);
+    }
+  });
 });
 
 describe('Integridad de Migraciones SQL (database/)', () => {
-  it('verifica existencia, balance BEGIN/COMMIT y RPCs de 004_acciones_operativas.sql', () => {
-    for (const file of ['001_inicial.sql', '002_acceso_portal.sql', '003_panel_empresa.sql', '004_acciones_operativas.sql']) {
+  it('verifica existencia, balance BEGIN/COMMIT y RPCs de 004 y 005', () => {
+    for (const file of ['001_inicial.sql', '002_acceso_portal.sql', '003_panel_empresa.sql', '004_acciones_operativas.sql', '005_usuarios_y_empresas_reales.sql']) {
       const abs = path.join(ROOT, 'database', file);
       assert.ok(fs.existsSync(abs), `Falta migración SQL: ${file}`);
       const sql = fs.readFileSync(abs, 'utf8');
