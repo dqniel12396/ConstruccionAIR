@@ -107,6 +107,17 @@ describe('OTech AirNet Core — Catálogo Canónico de 8 Estaciones', () => {
       assert.ok(Array.isArray(est.sensores) && est.sensores.length >= 2);
     }
   });
+
+  it('aislamiento multi-tenant asigna estaciones exclusivas por empresa', () => {
+    const estaciones = OTechCore.ESTACIONES_BASE_OTECH;
+    const porEmpresa = { ecopetrol: 0, alpina: 0, corferias: 0 };
+    for (const e of estaciones) {
+      if (e.empresa in porEmpresa) porEmpresa[e.empresa] += 1;
+    }
+    assert.equal(porEmpresa.ecopetrol, 3);
+    assert.equal(porEmpresa.alpina, 3);
+    assert.equal(porEmpresa.corferias, 2);
+  });
 });
 
 describe('Offline Readiness, Enlaces Locales y Contratos DOM/JS', () => {
@@ -116,7 +127,8 @@ describe('Offline Readiness, Enlaces Locales y Contratos DOM/JS', () => {
     'plataforma_web/portal.html',
     'plataforma_web/publico.html',
     'plataforma_web/mapa-estaciones.html',
-    'plataforma_web/index.html'
+    'plataforma_web/index.html',
+    'cad_models/index.html'
   ];
 
   it('no usa CDNs externos en archivos HTML activos y todos los assets locales existen', () => {
@@ -248,12 +260,22 @@ describe('Offline Readiness, Enlaces Locales y Contratos DOM/JS', () => {
     assert.ok(idxCore !== -1 && idxApp !== -1 && idxCore < idxApp, 'airnet-core.js debe cargarse antes que app.js');
   });
 
-  it('verifica infraestructura PWA (manifest, sw.js) y workflow CI en .github/workflows/ci.yml', () => {
+  it('verifica infraestructura PWA (manifest, sw.js) y workflows CI/Pages', () => {
     assert.ok(fs.existsSync(path.join(ROOT, 'manifest.webmanifest')));
     assert.ok(fs.existsSync(path.join(ROOT, 'sw.js')));
     assert.ok(fs.existsSync(path.join(ROOT, '.github', 'workflows', 'ci.yml')));
+    assert.ok(fs.existsSync(path.join(ROOT, '.github', 'workflows', 'pages.yml')));
     const manifest = JSON.parse(fs.readFileSync(path.join(ROOT, 'manifest.webmanifest'), 'utf8'));
     assert.equal(manifest.display, 'standalone');
+    const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
+    assert.ok(sw.includes('otech-airnet-v4'));
+  });
+
+  it('gemelo_digital_3d/app.js declara instDummy antes de usarlo en montantes P2', () => {
+    const appJs = fs.readFileSync(path.join(ROOT, 'gemelo_digital_3d', 'app.js'), 'utf8');
+    const idxDecl = appJs.indexOf('const instDummy = new THREE.Object3D();', 2000);
+    const idxUse = appJs.indexOf('mullionCoords.forEach');
+    assert.ok(idxDecl !== -1 && idxUse !== -1 && idxDecl < idxUse);
   });
 
   it('sin referencias obsoletas a ENTREGA_FINAL_OTECH_PLATAFORMA_WEB en docs y package.json', () => {
