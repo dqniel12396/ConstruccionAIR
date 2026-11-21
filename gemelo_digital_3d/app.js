@@ -318,6 +318,7 @@ function initApp() {
   createRainParticles();
   createDimensionLines();
   setupUIEvents();
+  setWeather('sun');
   safeRefreshIcons();
   animate();
 }
@@ -5006,7 +5007,7 @@ function initThree() {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  renderer.toneMappingExposure = 1.45;
   container.appendChild(renderer.domElement);
 
   // Controls
@@ -6327,9 +6328,10 @@ function setWeather(mode) {
     scene.background.set(0x0a0e17);
     if (scene.fog) scene.fog.color.set(0x0a0e17);
     dirLight.color.set(0xfffaed);
-    dirLight.intensity = 1.5;
-    ambientLight.color.set(0xddeeff);
-    ambientLight.intensity = 0.7;
+    dirLight.intensity = 2.2;
+    ambientLight.color.set(0xeef6ff);
+    ambientLight.intensity = 1.25;
+    if (hemiLight) hemiLight.intensity = 1.0;
     if (rainParticles) rainParticles.visible = false;
     if (materialsMap.ledRing) materialsMap.ledRing.color.set(0x0ea5e9);
     if (ledRingLight) { ledRingLight.color.set(0x0ea5e9); ledRingLight.intensity = 1.6; }

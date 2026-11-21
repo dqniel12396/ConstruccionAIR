@@ -62,16 +62,27 @@ body {
 
 /* Header */
 .top-header {
-  height: 64px;
-  background: rgba(10, 14, 23, 0.90);
+  min-height: 60px;
+  height: auto;
+  background: rgba(10, 14, 23, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-color);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
+  gap: 8px 14px;
+  padding: 8px 16px;
   z-index: 100;
+}
+
+.top-header button,
+.top-header a,
+.top-header .mode-btn,
+.top-header .header-badge {
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .brand-badge {
@@ -320,12 +331,13 @@ body {
 /* Bottom Floating Docks (Modulares y Aislados) */
 .viewport-dock-bottom {
   position: absolute;
-  bottom: 24px;
-  left: 24px;
-  right: 24px;
+  bottom: 18px;
+  left: 16px;
+  right: 16px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
+  gap: 10px;
   pointer-events: none;
   z-index: 20;
 }
